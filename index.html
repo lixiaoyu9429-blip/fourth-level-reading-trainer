@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>四等水准红黑面读数训练</title>
+  <title>水准尺黑红面读数训练</title>
   <style>
     :root {
       --bg: #d6d7d9;
@@ -887,7 +887,7 @@
 
     .preset-actions {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 10px;
     }
@@ -1043,6 +1043,7 @@
       .staff-meta,
       .staff-footer,
       .settings-grid,
+      .preset-actions,
       .side-actions,
       .check-grid {
         grid-template-columns: 1fr;
@@ -1060,8 +1061,8 @@
   <header class="app-header">
     <div class="header-inner">
       <div>
-        <h1>四等水准红黑面读数训练</h1>
-        <p class="subhead" id="subtitle">红黑面读数、视距、红黑面差和高差辅差自动核查</p>
+        <h1>水准尺黑红面读数训练</h1>
+        <p class="subhead" id="subtitle">红黑面读数、视距、基辅/红黑面读数差和高差差自动核查</p>
       </div>
       <div class="stats">
         <div class="stat"><strong id="statMode">练习</strong><span>当前模式</span></div>
@@ -1196,19 +1197,21 @@
           </div>
           <div class="panel-body">
             <div class="preset-actions" id="presetActions">
-              <button data-action="applyPreset" data-preset="second">二等水准</button>
+              <button data-action="applyPreset" data-preset="secondOptical">二等水准（光学）</button>
+              <button data-action="applyPreset" data-preset="secondDigital">二等水准（数字）</button>
               <button data-action="applyPreset" data-preset="fourth">四等水准</button>
             </div>
             <div class="settings-grid">
-              <label class="setting">A尺常数 mm<input type="number" data-setting="rodAConstantMm" step="1"></label>
-              <label class="setting">B尺常数 mm<input type="number" data-setting="rodBConstantMm" step="1"></label>
-              <label class="setting">读数误差 mm<input type="number" data-setting="readToleranceMm" min="0" step="0.1"></label>
-              <label class="setting">视距上限 m<input type="number" data-setting="sightMaxM" min="1" step="1"></label>
-              <label class="setting">前后距差 m<input type="number" data-setting="sightDiffMaxM" min="0" step="0.5"></label>
-              <label class="setting">累计距差 m<input type="number" data-setting="cumulativeSightDiffMaxM" min="0" step="0.5"></label>
-              <label class="setting">红黑面差 mm<input type="number" data-setting="redBlackDiffMm" min="0" step="0.1"></label>
-              <label class="setting">高差辅差 mm<input type="number" data-setting="heightDiffMm" min="0" step="0.1"></label>
-              <label class="setting">测验站数<input type="number" data-setting="testCount" min="1" max="30" step="1"></label>
+              <label class="setting"><span data-setting-label="rodAConstantMm">A尺常数 mm</span><input type="number" data-setting="rodAConstantMm" step="1"></label>
+              <label class="setting"><span data-setting-label="rodBConstantMm">B尺常数 mm</span><input type="number" data-setting="rodBConstantMm" step="1"></label>
+              <label class="setting"><span data-setting-label="sightMaxM">视距上限 m</span><input type="number" data-setting="sightMaxM" min="1" step="1"></label>
+              <label class="setting"><span data-setting-label="sightDiffMaxM">前后距差 m</span><input type="number" data-setting="sightDiffMaxM" min="0" step="0.5"></label>
+              <label class="setting"><span data-setting-label="cumulativeSightDiffMaxM">累计距差 m</span><input type="number" data-setting="cumulativeSightDiffMaxM" min="0" step="0.5"></label>
+              <label class="setting"><span data-setting-label="redBlackDiffMm">红黑面读数差 mm</span><input type="number" data-setting="redBlackDiffMm" min="0" step="0.1"></label>
+              <label class="setting"><span data-setting-label="heightDiffMm">红黑面高差之差 mm</span><input type="number" data-setting="heightDiffMm" min="0" step="0.1"></label>
+              <label class="setting" data-standard-visible="second"><span data-setting-label="intermittentPointDiffMm">间歇点检测高差差 mm</span><input type="number" data-setting="intermittentPointDiffMm" min="0" step="0.1"></label>
+              <label class="setting"><span data-setting-label="readToleranceMm">读数判定误差 mm</span><input type="number" data-setting="readToleranceMm" min="0" step="0.1"></label>
+              <label class="setting"><span data-setting-label="testCount">测验站数</span><input type="number" data-setting="testCount" min="1" max="30" step="1"></label>
             </div>
             <div class="side-actions">
               <button data-action="saveSettings" class="primary">保存设置</button>
@@ -1245,26 +1248,59 @@
         cumulativeSightDiffMaxM: 10,
         redBlackDiffMm: 3,
         heightDiffMm: 5,
+        intermittentPointDiffMm: 1,
         testCount: 12
       };
 
-      const SECOND_LEVEL_SETTINGS = {
+      const SECOND_LEVEL_OPTICAL_SETTINGS = {
         rodAConstantMm: 4687,
         rodBConstantMm: 4787,
         readToleranceMm: 0.5,
         sightMaxM: 50,
         sightDiffMaxM: 1,
         cumulativeSightDiffMaxM: 3,
-        redBlackDiffMm: 1,
-        heightDiffMm: 1,
+        redBlackDiffMm: 0.4,
+        heightDiffMm: 0.6,
+        intermittentPointDiffMm: 1,
+        testCount: 12
+      };
+
+      const SECOND_LEVEL_DIGITAL_SETTINGS = {
+        ...SECOND_LEVEL_OPTICAL_SETTINGS,
+        sightDiffMaxM: 1.5,
+        cumulativeSightDiffMaxM: 6,
         testCount: 12
       };
 
       const DEFAULT_SETTINGS = { ...FOURTH_LEVEL_SETTINGS };
 
       const SETTING_PRESETS = {
-        second: { label: '二等水准', values: SECOND_LEVEL_SETTINGS },
+        secondOptical: { label: '二等水准（光学）', level: 'second', instrument: '光学', values: SECOND_LEVEL_OPTICAL_SETTINGS },
+        secondDigital: { label: '二等水准（数字）', level: 'second', instrument: '数字', values: SECOND_LEVEL_DIGITAL_SETTINGS },
         fourth: { label: '四等水准', values: FOURTH_LEVEL_SETTINGS }
+      };
+
+      const STANDARD_TERMS = {
+        second: {
+          level: 'second',
+          redBlackSetting: '基辅分划读数差 mm',
+          heightSetting: '基辅分划高差差 mm',
+          intermittentSetting: '间歇点检测高差差 mm',
+          backReadDiff: '后尺基辅分划读数差',
+          foreReadDiff: '前尺基辅分划读数差',
+          heightDiff: '基辅分划高差差',
+          reviewHint: '基辅分划读数差、基辅分划高差差'
+        },
+        fourth: {
+          level: 'fourth',
+          redBlackSetting: '红黑面读数差 mm',
+          heightSetting: '红黑面高差之差 mm',
+          intermittentSetting: '间歇点检测高差差 mm',
+          backReadDiff: '后尺红黑面读数差',
+          foreReadDiff: '前尺红黑面读数差',
+          heightDiff: '红黑面高差之差',
+          reviewHint: '红黑面读数差、红黑面高差之差'
+        }
       };
 
       const SHOTS = [
@@ -1355,6 +1391,7 @@
       const state = {
         mode: saved.mode === 'test' ? 'test' : 'practice',
         settings,
+        standardKey: normalizeStandardKey(saved.standardKey, settings),
         currentShot: SHOTS.some(s => s.id === saved.currentShot) ? saved.currentShot : 'backBlack',
         practiceStation: validStation(saved.practiceStation) ? saved.practiceStation : null,
         practiceAnswers: savedObject(saved.practiceAnswers),
@@ -1379,6 +1416,18 @@
         src: '',
         position: ''
       };
+
+      if ((!saved.standardKey || saved.standardKey === 'second') && state.standardKey === 'secondOptical') {
+        const legacySecond = Number(state.settings.sightMaxM) === 50
+          && Number(state.settings.sightDiffMaxM) === 1
+          && Number(state.settings.cumulativeSightDiffMaxM) === 3
+          && Number(state.settings.redBlackDiffMm) === 1
+          && Number(state.settings.heightDiffMm) === 1;
+        if (legacySecond) {
+          const testCount = state.settings.testCount;
+          Object.assign(state.settings, SECOND_LEVEL_OPTICAL_SETTINGS, { testCount });
+        }
+      }
 
       if (!state.practiceStation) {
         state.practiceStation = createStation(1, 0);
@@ -1413,6 +1462,25 @@
         return merged;
       }
 
+      function normalizeStandardKey(key, activeSettings) {
+        if (key === 'second') return 'secondOptical';
+        if (SETTING_PRESETS[key]) return key;
+        const settingsSource = activeSettings || {};
+        if (Number(settingsSource.sightMaxM) === 50) {
+          return Number(settingsSource.cumulativeSightDiffMaxM) === 6 ? 'secondDigital' : 'secondOptical';
+        }
+        return 'fourth';
+      }
+
+      function currentStandardMeta() {
+        return SETTING_PRESETS[state.standardKey] || SETTING_PRESETS.fourth;
+      }
+
+      function currentStandardTerms() {
+        const meta = currentStandardMeta();
+        return STANDARD_TERMS[meta.level || 'fourth'] || STANDARD_TERMS.fourth;
+      }
+
       function savedObject(value) {
         return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
       }
@@ -1421,6 +1489,7 @@
         const payload = {
           mode: state.mode,
           settings: state.settings,
+          standardKey: state.standardKey,
           settingsSavedAt: state.settingsSavedAt,
           currentShot: state.currentShot,
           practiceStation: state.practiceStation,
@@ -1730,6 +1799,7 @@
 
       function resetSettings() {
         Object.assign(state.settings, DEFAULT_SETTINGS);
+        state.standardKey = 'fourth';
         syncSettingsInputs();
         state.settingsSavedAt = '';
         state.practiceGrade = null;
@@ -1751,6 +1821,7 @@
         const preset = SETTING_PRESETS[name];
         if (!preset) return;
         Object.assign(state.settings, preset.values);
+        state.standardKey = name;
         syncSettingsInputs();
         state.settingsSavedAt = '';
         state.practiceGrade = null;
@@ -1778,7 +1849,7 @@
 
       function exportRecords() {
         const lines = [];
-        lines.push('四等水准红黑面读数训练成绩');
+        lines.push('水准尺黑红面读数训练成绩');
         lines.push('导出时间：' + formatDate(new Date().toISOString()));
         lines.push('');
         lines.push('练习记录');
@@ -1803,7 +1874,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = '四等水准红黑面读数训练成绩.txt';
+        link.download = '水准尺黑红面读数训练成绩.txt';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1875,6 +1946,7 @@
         renderModeButtons();
         renderShotButtons();
         renderPresetButtons();
+        renderSettingTerminology();
         renderSettingsStatus();
         renderHeaderStats();
         renderToolbar();
@@ -1906,6 +1978,31 @@
           const preset = SETTING_PRESETS[btn.dataset.preset];
           const active = preset && Object.keys(preset.values).every(key => Number(state.settings[key]) === Number(preset.values[key]));
           btn.classList.toggle('active', Boolean(active));
+        });
+      }
+
+      function renderSettingTerminology() {
+        const meta = currentStandardMeta();
+        const terms = currentStandardTerms();
+        const labelMap = {
+          rodAConstantMm: 'A尺常数 mm',
+          rodBConstantMm: 'B尺常数 mm',
+          sightMaxM: '视距上限 m',
+          sightDiffMaxM: meta.level === 'second' ? '前后距差 m（' + meta.instrument + '）' : '前后距差 m',
+          cumulativeSightDiffMaxM: meta.level === 'second' ? '累计距差 m（' + meta.instrument + '）' : '累计距差 m',
+          redBlackDiffMm: terms.redBlackSetting,
+          heightDiffMm: terms.heightSetting,
+          intermittentPointDiffMm: terms.intermittentSetting,
+          readToleranceMm: '读数判定误差 mm',
+          testCount: '测验站数'
+        };
+        Object.keys(labelMap).forEach(key => {
+          document.querySelectorAll('[data-setting-label="' + key + '"]').forEach(label => {
+            label.textContent = labelMap[key];
+          });
+        });
+        document.querySelectorAll('[data-standard-visible]').forEach(item => {
+          item.classList.toggle('hidden', item.dataset.standardVisible !== terms.level);
         });
       }
 
@@ -2285,6 +2382,7 @@
         const grade = visibleGrade() || gradeStation(station, answers, cumulativeBeforeActiveStation());
         const calc = grade.calc;
         const settings = state.settings;
+        const terms = currentStandardTerms();
         const items = [
           {
             label: '后视距',
@@ -2311,13 +2409,13 @@
             ok: calc.cumulativeSightDiffM != null ? Math.abs(calc.cumulativeSightDiffM) <= settings.cumulativeSightDiffMaxM : null
           },
           {
-            label: '后尺红黑差',
+            label: terms.backReadDiff,
             value: calc.backRedBlackDiffMm,
             unit: 'mm',
             ok: calc.backRedBlackDiffMm != null ? Math.abs(calc.backRedBlackDiffMm) <= settings.redBlackDiffMm : null
           },
           {
-            label: '前尺红黑差',
+            label: terms.foreReadDiff,
             value: calc.foreRedBlackDiffMm,
             unit: 'mm',
             ok: calc.foreRedBlackDiffMm != null ? Math.abs(calc.foreRedBlackDiffMm) <= settings.redBlackDiffMm : null
@@ -2329,7 +2427,7 @@
             ok: null
           },
           {
-            label: '高差辅差',
+            label: terms.heightDiff,
             value: calc.heightDiscrepancyMm,
             unit: 'mm',
             ok: calc.heightDiscrepancyMm != null ? Math.abs(calc.heightDiscrepancyMm) <= settings.heightDiffMm : null
@@ -2349,9 +2447,10 @@
 
       function renderCheckPlaceholder(answers) {
         const complete = allFaceReadingsComplete(answers);
+        const terms = currentStandardTerms();
         els.checkSummary.textContent = complete ? '待提交' : '待读数';
         els.checkGrid.innerHTML = '<div class="check-placeholder">' +
-          (complete ? '读数已完成，点击“提交复核”查看视距、红黑面差和高差辅差。' : '按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数后，再提交复核。') +
+          (complete ? '读数已完成，点击“提交复核”查看视距、' + terms.reviewHint + '。' : '按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数后，再提交复核。') +
           '</div>';
         els.resultBox.className = 'result-box neutral';
         els.resultBox.innerHTML = '<p class="result-title">' + (complete ? '可以提交复核' : '当前测站待读数') + '</p>';
@@ -2540,6 +2639,7 @@
       function gradeStation(station, answers, cumulativeBeforeM, options = {}) {
         const expected = expectedValues(station);
         const settings = state.settings;
+        const terms = currentStandardTerms();
         const details = {};
         const values = {};
         const issues = [];
@@ -2575,9 +2675,9 @@
         addLimitIssue(calc.foreDistanceM, value => value > 0 && value <= settings.sightMaxM, '前视距 ' + fmtM(calc.foreDistanceM) + '，限 ≤' + settings.sightMaxM + 'm');
         addLimitIssue(calc.sightDiffM, value => Math.abs(value) <= settings.sightDiffMaxM, '前后视距差 ' + signedM(calc.sightDiffM) + '，限 ±' + settings.sightDiffMaxM + 'm');
         addLimitIssue(calc.cumulativeSightDiffM, value => Math.abs(value) <= settings.cumulativeSightDiffMaxM, '累计视距差 ' + signedM(calc.cumulativeSightDiffM) + '，限 ±' + settings.cumulativeSightDiffMaxM + 'm');
-        addLimitIssue(calc.backRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, '后尺红黑面差 ' + signed(calc.backRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
-        addLimitIssue(calc.foreRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, '前尺红黑面差 ' + signed(calc.foreRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
-        addLimitIssue(calc.heightDiscrepancyMm, value => Math.abs(value) <= settings.heightDiffMm, '高差辅差 ' + signed(calc.heightDiscrepancyMm) + 'mm，限 ±' + settings.heightDiffMm + 'mm');
+        addLimitIssue(calc.backRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, terms.backReadDiff + ' ' + signed(calc.backRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
+        addLimitIssue(calc.foreRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, terms.foreReadDiff + ' ' + signed(calc.foreRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
+        addLimitIssue(calc.heightDiscrepancyMm, value => Math.abs(value) <= settings.heightDiffMm, terms.heightDiff + ' ' + signed(calc.heightDiscrepancyMm) + 'mm，限 ±' + settings.heightDiffMm + 'mm');
 
         // 手簿计算格：标准答案按真实尺面（与读数对错无关）推算，核对手算是否正确
         const idealCalc = computeFromValues(expected, station, station.cumulativeBeforeM);
@@ -2679,8 +2779,8 @@
           : null;
         const readTol = Math.max(0, Number(activeSettings.readToleranceMm) || 0);
         const distanceTolM = Math.max(0.1, readTol * 0.2);
-        const redBlackTolMm = Math.max(0.5, Number(activeSettings.redBlackDiffMm) || 0);
-        const heightTolM = Math.max(0.001, Math.max(readTol * 2, Number(activeSettings.heightDiffMm) || 0) / 1000);
+        const redBlackTolMm = Math.max(0.01, Number(activeSettings.redBlackDiffMm) || 0);
+        const heightTolM = Math.max(0.00001, Number(activeSettings.heightDiffMm) || 0) / 1000;
         const sightDiffTolM = Math.max(0.05, Number(activeSettings.sightDiffMaxM) || 0);
         const cumulativeTolM = Math.max(0.05, Number(activeSettings.cumulativeSightDiffMaxM) || 0);
         return [
