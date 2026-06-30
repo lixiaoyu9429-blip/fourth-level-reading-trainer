@@ -501,11 +501,11 @@
     .e-bar {
       left: 0;
       width: 100%;
-      height: 24%;
+      height: 20%;
     }
 
     .e-bar.top { top: 0; width: 55%; }
-    .e-bar.middle { top: 38%; width: 74%; }
+    .e-bar.middle { top: 40%; width: 74%; }
     .e-bar.bottom { bottom: 0; width: 90%; }
 
     /* 1cm graduation bars between E-marks (upper 50mm of each decimeter) */
@@ -1383,6 +1383,9 @@
       if (!state.practiceStation) {
         state.practiceStation = createStation(1, 0);
       }
+      snapStationRedReadings(state.practiceStation);
+      state.testStations.forEach(snapStationRedReadings);
+      state.mistakeStations.forEach(item => snapStationRedReadings(item.station));
       if (!state.testStations.length) {
         createTest(false);
       }
@@ -2490,14 +2493,27 @@
         const minMid = Math.ceil(760 + half);
         const maxMid = Math.floor(3000 - half);
         const mid = randomInt(minMid, maxMid);
-        const redError = randomInt(-1, 1);
         return {
           constant,
           blackUpper: mid + half,
           blackMid: mid,
           blackLower: mid - half,
-          redMid: mid + constant + redError
+          redMid: mid + constant
         };
+      }
+
+      function snapStationRedReadings(station) {
+        if (!station) return station;
+        ['back', 'fore'].forEach(key => {
+          const rod = station[key];
+          if (!rod) return;
+          const blackMid = Number(rod.blackMid);
+          const constant = Number(rod.constant);
+          if (Number.isFinite(blackMid) && Number.isFinite(constant)) {
+            rod.redMid = blackMid + constant;
+          }
+        });
+        return station;
       }
 
       function validStation(station) {
