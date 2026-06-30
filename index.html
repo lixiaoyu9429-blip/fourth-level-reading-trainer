@@ -1,0 +1,2799 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>四等水准红黑面读数训练</title>
+  <style>
+    :root {
+      --bg: #d6d7d9;
+      --surface: linear-gradient(145deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.28) 48%, rgba(255, 255, 255, 0.16));
+      --surface-hover: linear-gradient(145deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.34) 52%, rgba(255, 255, 255, 0.20));
+      --surface-strong: rgba(255, 255, 255, 0.62);
+      --surface-soft: rgba(255, 255, 255, 0.22);
+      --text: #16181c;
+      --muted: #666b73;
+      --line: rgba(255, 255, 255, 0.40);
+      --line-strong: rgba(255, 255, 255, 0.68);
+      --accent: #3a3a3c;
+      --accent-dark: #1c1c1e;
+      --accent-soft: rgba(255, 255, 255, 0.36);
+      --blue: #3b4558;
+      --amber: #b45309;
+      --red: #be123c;
+      --green: #15803d;
+      --green-soft: rgba(220, 252, 231, 0.46);
+      --red-soft: rgba(255, 228, 230, 0.46);
+      --amber-soft: rgba(254, 243, 199, 0.46);
+      --blue-soft: rgba(232, 234, 238, 0.46);
+      --shadow: 0 24px 68px rgba(0, 0, 0, 0.20);
+      --glass-shadow:
+        0 22px 56px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.14);
+      --radius: 28px;
+      --control-radius: 16px;
+      --header-height: 78px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      position: relative;
+      isolation: isolate;
+      background: var(--bg);
+      color: var(--text);
+      letter-spacing: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.10) 42%, rgba(0, 0, 0, 0.12)),
+        radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.22), transparent 32%),
+        radial-gradient(circle at 86% 18%, rgba(255, 255, 255, 0.16), transparent 34%);
+    }
+
+    .page-background {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      background: #cfd1d4;
+      pointer-events: none;
+    }
+
+    .page-bg-layer {
+      position: absolute;
+      inset: -22px;
+      opacity: 0;
+      background-image: url("assets/backgrounds/nanjing-ground-1.png");
+      background-position: center center;
+      background-size: cover;
+      filter: blur(8px) brightness(0.76) saturate(0.96);
+      transform: scale(1.05);
+      transition: opacity 0.58s ease, filter 0.58s ease, transform 0.58s ease;
+      will-change: opacity;
+    }
+
+    .page-bg-layer.is-active {
+      opacity: 1;
+      transform: scale(1.04);
+    }
+
+    .page-bg-mask {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(245, 247, 250, 0.28), rgba(245, 247, 250, 0.10) 46%, rgba(0, 0, 0, 0.16)),
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.28), transparent 45%);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: var(--control-radius);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.18));
+      color: var(--text);
+      padding: 0 12px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68), 0 12px 28px rgba(3, 18, 28, 0.12);
+      -webkit-backdrop-filter: saturate(190%) blur(28px);
+      backdrop-filter: saturate(190%) blur(28px);
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      border-color: var(--line-strong);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.32));
+      box-shadow: 0 16px 32px rgba(8, 24, 38, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    }
+    button:active { transform: translateY(1px); }
+    button:disabled { cursor: not-allowed; opacity: 0.55; transform: none; }
+
+    input {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: var(--control-radius);
+      background: rgba(255, 255, 255, 0.30);
+      color: var(--text);
+      padding: 0 10px;
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 8px 20px rgba(3, 18, 28, 0.08);
+      -webkit-backdrop-filter: saturate(190%) blur(24px);
+      backdrop-filter: saturate(190%) blur(24px);
+    }
+
+    input:focus {
+      border-color: rgba(255, 255, 255, 0.82);
+      box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.28),
+        0 10px 24px rgba(0, 0, 0, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    }
+
+    input.good {
+      border-color: #86efac;
+      background: rgba(240, 253, 244, 0.48);
+    }
+
+    input.bad {
+      border-color: #fda4af;
+      background: rgba(255, 241, 242, 0.50);
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      min-height: var(--header-height);
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(248, 253, 255, 0.38), rgba(255, 255, 255, 0.12));
+      -webkit-backdrop-filter: saturate(210%) blur(34px);
+      backdrop-filter: saturate(210%) blur(34px);
+      box-shadow: 0 16px 42px rgba(3, 18, 28, 0.18);
+    }
+
+    .header-inner {
+      width: min(1680px, 100%);
+      margin: 0 auto;
+      min-height: var(--header-height);
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(420px, 680px);
+      gap: 18px;
+      align-items: center;
+      padding: 10px 20px;
+    }
+
+    h1 {
+      margin: 0 0 5px;
+      font-size: 21px;
+      line-height: 1.18;
+      font-weight: 760;
+    }
+
+    .subhead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      padding: 7px 10px;
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(210%) blur(32px);
+      backdrop-filter: saturate(210%) blur(32px);
+    }
+
+    .stat strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .shell {
+      width: min(1680px, 100%);
+      margin: 0 auto;
+      padding: 14px 20px 24px;
+    }
+
+    .mode-bar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .mode-switch,
+    .shot-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      padding: 6px;
+      -webkit-backdrop-filter: saturate(205%) blur(32px);
+      backdrop-filter: saturate(205%) blur(32px);
+    }
+
+    .chip.active,
+    .shot-button.active {
+      border-color: rgba(255, 255, 255, 0.78);
+      background: var(--surface-hover);
+      color: var(--accent-dark);
+      font-weight: 700;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.82),
+        0 14px 30px rgba(0, 0, 0, 0.14);
+    }
+
+    .shot-button.locked {
+      color: var(--muted);
+    }
+
+    .primary {
+      border-color: rgba(255, 255, 255, 0.34);
+      background: linear-gradient(180deg, rgba(44, 44, 46, 0.88), rgba(28, 28, 30, 0.78));
+      color: #fff;
+      font-weight: 700;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 14px 30px rgba(0, 0, 0, 0.20);
+    }
+
+    .primary:hover {
+      border-color: rgba(255, 255, 255, 0.46);
+      background: linear-gradient(180deg, rgba(58, 58, 60, 0.92), rgba(28, 28, 30, 0.84));
+    }
+
+    .danger {
+      border-color: #fecdd3;
+      color: var(--red);
+    }
+
+    .danger:hover {
+      border-color: #fb7185;
+      background: var(--red-soft);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(680px, 780px) minmax(460px, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .side-stack {
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .glass-card,
+    .panel,
+    .stat,
+    .mini-card,
+    .mode-switch,
+    .shot-switch,
+    .station-toolbar,
+    .observation-table-wrap,
+    .check-item,
+    .result-box,
+    .history-item {
+      background-clip: padding-box;
+    }
+
+    .glass-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(215%) blur(38px);
+      backdrop-filter: saturate(215%) blur(38px);
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(215%) blur(38px);
+      backdrop-filter: saturate(215%) blur(38px);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04));
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .panel-head span {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .staff-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 7px 9px;
+      min-width: 0;
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(210%) blur(32px);
+      backdrop-filter: saturate(210%) blur(32px);
+    }
+
+    .mini-card strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .mini-card span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .staff-window {
+      position: relative;
+      width: min(100%, 760px);
+      aspect-ratio: 1;
+      margin: 0 auto;
+      overflow: clip;
+      border: 16px solid #1d252d;
+      border-radius: 50%;
+      background: #1d252d;
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.28),
+        inset 0 0 42px rgba(0, 0, 0, 0.62),
+        0 18px 34px rgba(15, 23, 42, 0.18);
+    }
+
+    .window-photo {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: 50%;
+      clip-path: circle(50%);
+      overflow: hidden;
+      background: #1d252d;
+    }
+
+    .scope-bg-layer {
+      position: absolute;
+      inset: -3%;
+      opacity: 0;
+      background-image: url("assets/backgrounds/nanjing-ground-1.png");
+      background-size: cover;
+      background-position: center center;
+      filter: blur(1.2px) brightness(0.84) saturate(0.98);
+      transform: scale(1.035);
+      transition: opacity 0.48s ease, filter 0.48s ease, transform 0.48s ease;
+      will-change: opacity;
+    }
+
+    .scope-bg-layer.is-active {
+      opacity: 1;
+      transform: scale(1.025);
+    }
+
+    .staff-body {
+      position: absolute;
+      left: 50%;
+      z-index: 1;
+      overflow: hidden;
+      transform: translateX(-50%);
+      border-left: var(--staff-edge-width, 4px) solid #f97316;
+      border-right: var(--staff-edge-width, 4px) solid #f97316;
+      background:
+        linear-gradient(90deg, #eef2f3 0 8%, #fff 8% 92%, #e8edf0 92% 100%);
+      box-shadow:
+        inset 0 0 0 var(--staff-hairline, 1px) #c6d0d8,
+        0 0 var(--staff-shadow-blur, 18px) rgba(0, 0, 0, 0.28);
+    }
+
+    .staff-body.red-face {
+      background:
+        linear-gradient(90deg, #eef2f3 0 8%, #fff 8% 92%, #e8edf0 92% 100%);
+    }
+
+    /* FIX: removed min-height: 18px — was forcing minimum size that caused overlap at low zoom */
+    .e-mark {
+      position: absolute;
+      left: 36%;
+      width: 36%;
+      color: #16202a;
+    }
+
+    .e-mark.red {
+      color: #ef2b1d;
+    }
+
+    .e-mark.flip .e-stem {
+      left: auto;
+      right: 0;
+    }
+
+    .e-mark.flip .e-bar {
+      left: auto;
+      right: 0;
+    }
+
+    .e-stem,
+    .e-bar {
+      position: absolute;
+      background: currentColor;
+      border-radius: var(--staff-mark-radius, 1px);
+    }
+
+    .e-stem {
+      left: 0;
+      top: 0;
+      width: 25%;
+      height: 100%;
+    }
+
+    .e-bar {
+      left: 0;
+      width: 100%;
+      height: 24%;
+    }
+
+    .e-bar.top { top: 0; width: 55%; }
+    .e-bar.middle { top: 38%; width: 74%; }
+    .e-bar.bottom { bottom: 0; width: 90%; }
+
+    /* 1cm graduation bars between E-marks (upper 50mm of each decimeter) */
+    .cm-bar {
+      position: absolute;
+      left: 40%;
+      width: 20%;
+      background: #16202a;
+      border-radius: var(--staff-mark-radius, 1px);
+    }
+
+    .cm-bar.red {
+      background: #ef2b1d;
+    }
+
+    .staff-number {
+      position: absolute;
+      right: 4%;
+      width: 1.55em;
+      transform: translateY(-50%);
+      color: #16202a;
+      font-size: var(--staff-num-size, 22px);
+      font-weight: 760;
+      line-height: 0.96;
+      text-align: center;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .staff-number.left {
+      left: 4%;
+      right: auto;
+      text-align: left;
+    }
+
+    .staff-number.right {
+      right: 4%;
+      left: auto;
+      text-align: right;
+    }
+
+    .staff-number.red {
+      color: #ef2b1d;
+    }
+
+    .cross-line {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 0;
+      border-top: 1.7px solid rgba(11, 18, 32, 0.88);
+      z-index: 5;
+      filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
+    }
+
+    .cross-line::before {
+      content: "";
+      position: absolute;
+      top: -16px;
+      bottom: -16px;
+      left: 50%;
+      border-left: 1.7px solid currentColor;
+      color: inherit;
+    }
+
+    .cross-line.upper,
+    .cross-line.lower {
+      border-top-color: rgba(11, 18, 32, 0.58);
+      color: rgba(11, 18, 32, 0.58);
+    }
+
+    .cross-line.middle {
+      border-top-color: rgba(11, 18, 32, 0.95);
+      color: rgba(11, 18, 32, 0.95);
+    }
+
+    .cross-line.red {
+      border-top-color: rgba(11, 18, 32, 0.95);
+      color: rgba(11, 18, 32, 0.95);
+    }
+
+    .cross-line span {
+      position: absolute;
+      top: -14px;
+      right: 8px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.44);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
+      backdrop-filter: saturate(180%) blur(16px);
+      padding: 1px 6px;
+      font-size: 12px;
+      line-height: 1.2;
+      color: currentColor;
+    }
+
+    .focus-band {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 44% 38%, rgba(255, 255, 255, 0.22), transparent 23%),
+        radial-gradient(circle, transparent 56%, rgba(3, 7, 18, 0.32) 78%, rgba(3, 7, 18, 0.72) 100%);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .staff-footer {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .flow-hint {
+      min-height: 18px;
+      margin: 10px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .flow-hint.warn {
+      color: #9a3412;
+      font-weight: 700;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 14px;
+    }
+
+    .station-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(215%) blur(38px);
+      backdrop-filter: saturate(215%) blur(38px);
+      overflow: hidden;
+    }
+
+    .station-title strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .station-title span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toolbar-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .observation-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(210%) blur(34px);
+      backdrop-filter: saturate(210%) blur(34px);
+    }
+
+    .observation-table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .observation-table th,
+    .observation-table td {
+      border: 1px solid var(--line);
+      padding: 6px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 12px;
+    }
+
+    .observation-table thead th {
+      background: rgba(247, 250, 252, 0.20);
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+
+    .observation-table td {
+      min-width: 78px;
+    }
+
+    .observation-table .narrow-th {
+      min-width: 0;
+      width: 28px;
+      padding: 6px 3px;
+    }
+
+    .observation-table input {
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .observation-table .dir-cell {
+      font-weight: 700;
+      background: rgba(251, 253, 255, 0.16);
+    }
+
+    .observation-table .station-cell {
+      font-weight: 700;
+      background: rgba(251, 253, 255, 0.16);
+    }
+
+    .observation-table td.locked input {
+      background: rgba(241, 245, 249, 0.24);
+      color: var(--muted);
+    }
+
+    .lock-line {
+      color: #9a3412;
+    }
+
+    .calc-value {
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+
+    .answer-line {
+      display: block;
+      min-height: 16px;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .check-item {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(210%) blur(32px);
+      backdrop-filter: saturate(210%) blur(32px);
+    }
+
+    .check-item strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .check-item span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .check-item.pass {
+      border-color: rgba(34, 197, 94, 0.46);
+      background: var(--surface);
+    }
+
+    .check-item.fail {
+      border-color: rgba(244, 63, 94, 0.46);
+      background: var(--surface);
+    }
+
+    .result-box {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(210%) blur(32px);
+      backdrop-filter: saturate(210%) blur(32px);
+    }
+
+    .check-placeholder {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      padding: 16px 14px;
+      background: rgba(255, 255, 255, 0.16);
+      -webkit-backdrop-filter: saturate(190%) blur(24px);
+      backdrop-filter: saturate(190%) blur(24px);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .result-box.good {
+      border-color: rgba(34, 197, 94, 0.46);
+      background: var(--surface);
+      color: #14532d;
+    }
+
+    .result-box.bad {
+      border-color: rgba(244, 63, 94, 0.46);
+      background: var(--surface);
+      color: #881337;
+    }
+
+    .result-box.neutral {
+      border-color: var(--line);
+      background: var(--surface);
+      color: var(--accent-dark);
+    }
+
+    .result-title {
+      margin: 0 0 7px;
+      font-weight: 760;
+      line-height: 1.25;
+    }
+
+    .issue-list {
+      margin: 0;
+      padding-left: 18px;
+      color: inherit;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    label.setting {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    label.setting input {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .preset-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .preset-actions button.active {
+      border-color: rgba(255, 255, 255, 0.78);
+      background: var(--surface-hover);
+      color: var(--accent-dark);
+      font-weight: 700;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.82),
+        0 14px 30px rgba(0, 0, 0, 0.14);
+    }
+
+    .side-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      background: var(--surface);
+      box-shadow: var(--glass-shadow);
+      -webkit-backdrop-filter: saturate(210%) blur(32px);
+      backdrop-filter: saturate(210%) blur(32px);
+    }
+
+    .history-item strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .history-item span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .history-item .small-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .history-item button {
+      min-height: 30px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tag.good {
+      background: var(--green-soft);
+      color: #14532d;
+    }
+
+    .tag.bad {
+      background: var(--red-soft);
+      color: #881337;
+    }
+
+    .tag.neutral {
+      background: var(--amber-soft);
+      color: #78350f;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1280px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side-stack {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 860px) {
+      .header-inner,
+      .mode-bar,
+      .layout,
+      .station-toolbar,
+      .side-stack {
+        grid-template-columns: 1fr;
+      }
+
+      .header-inner {
+        gap: 10px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .toolbar-buttons {
+        justify-content: flex-start;
+      }
+
+      .staff-window {
+        width: min(100%, 720px);
+        height: auto;
+      }
+
+      .check-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        padding: 10px 12px 18px;
+      }
+
+      .header-inner {
+        padding: 9px 12px;
+      }
+
+      h1 {
+        font-size: 19px;
+      }
+
+      .stats,
+      .staff-meta,
+      .staff-footer,
+      .settings-grid,
+      .side-actions,
+      .check-grid {
+        grid-template-columns: 1fr;
+      }
+
+    }
+</style>
+</head>
+<body>
+  <div class="page-background" aria-hidden="true">
+    <div class="page-bg-layer is-active" id="pageBgA"></div>
+    <div class="page-bg-layer" id="pageBgB"></div>
+    <div class="page-bg-mask"></div>
+  </div>
+  <header class="app-header">
+    <div class="header-inner">
+      <div>
+        <h1>四等水准红黑面读数训练</h1>
+        <p class="subhead" id="subtitle">红黑面读数、视距、红黑面差和高差辅差自动核查</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong id="statMode">练习</strong><span>当前模式</span></div>
+        <div class="stat"><strong id="statDone">0</strong><span id="statDoneLabel">已练测站</span></div>
+        <div class="stat"><strong id="statAccuracy">0%</strong><span>正确率</span></div>
+        <div class="stat"><strong id="statMistakes">0</strong><span>错站</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="mode-bar">
+      <div class="mode-switch" id="modeSwitch">
+        <button class="chip" data-mode="practice">练习模式</button>
+        <button class="chip" data-mode="test">测验模式</button>
+      </div>
+      <div class="shot-switch" id="shotSwitch">
+        <button class="shot-button" data-shot="backBlack">后视黑面</button>
+        <button class="shot-button" data-shot="backRed">后视红面</button>
+        <button class="shot-button" data-shot="foreBlack">前视黑面</button>
+        <button class="shot-button" data-shot="foreRed">前视红面</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>观测瞄准窗</h2>
+          <span id="shotLabel">后视黑面</span>
+        </div>
+        <div class="panel-body">
+          <div class="staff-meta">
+            <div class="mini-card"><strong id="rodRole">后视</strong><span>目标 </span></div>
+            <div class="mini-card"><strong id="rodFace">黑面</strong><span>尺面</span></div>
+            <div class="mini-card"><strong id="rodConstant">4687</strong><span>红面常数 mm</span></div>
+          </div>
+          <div class="staff-window" id="staffWindow">
+            <div class="window-photo" id="windowPhoto">
+              <div class="scope-bg-layer is-active" id="scopeBgA"></div>
+              <div class="scope-bg-layer" id="scopeBgB"></div>
+            </div>
+            <div class="focus-band"></div>
+            <div class="staff-body" id="staffBody"></div>
+            <div id="crossLayer"></div>
+          </div>
+          <p class="flow-hint" id="flowHint">按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数</p>
+          <div class="staff-footer">
+            <button data-action="prevShot">上一项</button>
+            <button data-action="nextShot">下一项</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <div class="station-toolbar">
+          <div class="station-title">
+            <strong id="stationTitle">练习测站</strong>
+            <span id="stationMeta">后尺常数 4687mm，前尺常数 4787mm</span>
+          </div>
+          <div class="toolbar-buttons">
+            <button data-action="newPractice" id="newPracticeBtn">新测站</button>
+            <button data-action="gradePractice" class="primary" id="gradePracticeBtn">提交复核</button>
+            <button data-action="revealPractice" id="revealPracticeBtn">显示答案</button>
+            <button data-action="prevStation" id="prevStationBtn" class="hidden">上一站</button>
+            <button data-action="nextStation" id="nextStationBtn" class="hidden">下一站</button>
+            <button data-action="submitTest" class="primary hidden" id="submitTestBtn">交卷</button>
+            <button data-action="startTest" id="startTestBtn" class="hidden">重新测验</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>观测记录表</h2>
+            <span>读数格输入 mm，4 位整数；计算格按实际单位手算填入</span>
+          </div>
+          <div class="panel-body">
+            <div class="observation-table-wrap">
+              <table class="observation-table">
+                <thead>
+                  <tr>
+                    <th rowspan="4">测站<br>编号</th>
+                    <th rowspan="2" class="narrow-th">后<br>尺</th>
+                    <th>上丝</th>
+                    <th rowspan="2" class="narrow-th">前<br>尺</th>
+                    <th>上丝</th>
+                    <th rowspan="4">方向<br>及<br>尺号</th>
+                    <th colspan="2">标尺读数</th>
+                    <th rowspan="4">K+黑<br>减红</th>
+                    <th rowspan="4">高差中数</th>
+                    <th rowspan="4">备考</th>
+                  </tr>
+                  <tr>
+                    <th>下丝</th>
+                    <th>下丝</th>
+                    <th rowspan="3">黑面</th>
+                    <th rowspan="3">红面</th>
+                  </tr>
+                  <tr>
+                    <th colspan="2">后距</th>
+                    <th colspan="2">前距</th>
+                  </tr>
+                  <tr>
+                    <th colspan="2">视距差d</th>
+                    <th colspan="2">Σd</th>
+                  </tr>
+                </thead>
+                <tbody id="observationGrid"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>自动校核</h2>
+            <span id="checkSummary">待复核</span>
+          </div>
+          <div class="panel-body">
+            <div class="check-grid" id="checkGrid"></div>
+            <div class="result-box neutral" id="resultBox">
+              <p class="result-title">当前测站待读数</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>复核设置</h2>
+            <span id="settingsStatus">本机保存</span>
+          </div>
+          <div class="panel-body">
+            <div class="preset-actions" id="presetActions">
+              <button data-action="applyPreset" data-preset="second">二等水准</button>
+              <button data-action="applyPreset" data-preset="fourth">四等水准</button>
+            </div>
+            <div class="settings-grid">
+              <label class="setting">A尺常数 mm<input type="number" data-setting="rodAConstantMm" step="1"></label>
+              <label class="setting">B尺常数 mm<input type="number" data-setting="rodBConstantMm" step="1"></label>
+              <label class="setting">读数误差 mm<input type="number" data-setting="readToleranceMm" min="0" step="0.1"></label>
+              <label class="setting">视距上限 m<input type="number" data-setting="sightMaxM" min="1" step="1"></label>
+              <label class="setting">前后距差 m<input type="number" data-setting="sightDiffMaxM" min="0" step="0.5"></label>
+              <label class="setting">累计距差 m<input type="number" data-setting="cumulativeSightDiffMaxM" min="0" step="0.5"></label>
+              <label class="setting">红黑面差 mm<input type="number" data-setting="redBlackDiffMm" min="0" step="0.1"></label>
+              <label class="setting">高差辅差 mm<input type="number" data-setting="heightDiffMm" min="0" step="0.1"></label>
+              <label class="setting">测验站数<input type="number" data-setting="testCount" min="1" max="30" step="1"></label>
+            </div>
+            <div class="side-actions">
+              <button data-action="saveSettings" class="primary">保存设置</button>
+              <button data-action="resetSettings">恢复默认</button>
+              <button data-action="exportRecords">导出成绩</button>
+              <button data-action="resetRecords" class="danger">清空记录</button>
+              <button data-action="startTest">生成测验</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>最近记录</h2>
+            <span id="historyCount">0 条</span>
+          </div>
+          <div class="panel-body">
+            <div class="history-list" id="historyList"></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const STORE_KEY = 'fourth-level-reading-trainer-v1';
+      const FOURTH_LEVEL_SETTINGS = {
+        rodAConstantMm: 4687,
+        rodBConstantMm: 4787,
+        readToleranceMm: 1,
+        sightMaxM: 100,
+        sightDiffMaxM: 5,
+        cumulativeSightDiffMaxM: 10,
+        redBlackDiffMm: 3,
+        heightDiffMm: 5,
+        testCount: 12
+      };
+
+      const SECOND_LEVEL_SETTINGS = {
+        rodAConstantMm: 4687,
+        rodBConstantMm: 4787,
+        readToleranceMm: 0.5,
+        sightMaxM: 50,
+        sightDiffMaxM: 1,
+        cumulativeSightDiffMaxM: 3,
+        redBlackDiffMm: 1,
+        heightDiffMm: 1,
+        testCount: 12
+      };
+
+      const DEFAULT_SETTINGS = { ...FOURTH_LEVEL_SETTINGS };
+
+      const SETTING_PRESETS = {
+        second: { label: '二等水准', values: SECOND_LEVEL_SETTINGS },
+        fourth: { label: '四等水准', values: FOURTH_LEVEL_SETTINGS }
+      };
+
+      const SHOTS = [
+        { id: 'backBlack', label: '后视黑面', role: '后视', face: '黑面', row: 'backBlack', rod: 'back' },
+        { id: 'backRed', label: '后视红面', role: '后视', face: '红面', row: 'backRed', rod: 'back' },
+        { id: 'foreBlack', label: '前视黑面', role: '前视', face: '黑面', row: 'foreBlack', rod: 'fore' },
+        { id: 'foreRed', label: '前视红面', role: '前视', face: '红面', row: 'foreRed', rod: 'fore' }
+      ];
+
+      const SHOT_REQUIREMENTS = {
+        backBlack: ['backBlackUpper', 'backBlackMid', 'backBlackLower'],
+        foreBlack: ['foreBlackUpper', 'foreBlackMid', 'foreBlackLower'],
+        backRed: ['backRedMid'],
+        foreRed: ['foreRedMid']
+      };
+
+      const STAFF_BACKGROUNDS = [
+        { src: 'assets/backgrounds/nanjing-ground-1.png', position: 'center center' },
+        { src: 'assets/backgrounds/nanjing-ground-2.png', position: 'center center' },
+        { src: 'assets/backgrounds/nanjing-ground-3.png', position: 'center center' },
+        { src: 'assets/backgrounds/nanjing-ground-4.png', position: 'center center' },
+        { src: 'assets/backgrounds/nanjing-ground-5.png', position: 'center center' }
+      ];
+
+      const OBS_LABELS = {
+        backBlackUpper: '后黑上丝',
+        backBlackMid: '后黑中丝',
+        backBlackLower: '后黑下丝',
+        backRedMid: '后红中丝',
+        foreBlackUpper: '前黑上丝',
+        foreBlackMid: '前黑中丝',
+        foreBlackLower: '前黑下丝',
+        foreRedMid: '前红中丝',
+        back9: '后视K+黑减红',
+        front10: '前视K+黑减红',
+        backDist: '后视距',
+        foreDist: '前视距',
+        blackHeightDiff: '黑面高差',
+        rawRedHeightDiff: '红面高差',
+        check13: '校核',
+        mean14: '高差中数',
+        sightDiff: '视距差',
+        cumulativeSightDiff: '视距累积差'
+      };
+
+      const els = {
+        pageBgA: document.getElementById('pageBgA'),
+        pageBgB: document.getElementById('pageBgB'),
+        statMode: document.getElementById('statMode'),
+        statDone: document.getElementById('statDone'),
+        statDoneLabel: document.getElementById('statDoneLabel'),
+        statAccuracy: document.getElementById('statAccuracy'),
+        statMistakes: document.getElementById('statMistakes'),
+        shotLabel: document.getElementById('shotLabel'),
+        rodRole: document.getElementById('rodRole'),
+        rodFace: document.getElementById('rodFace'),
+        rodConstant: document.getElementById('rodConstant'),
+        flowHint: document.getElementById('flowHint'),
+        staffWindow: document.getElementById('staffWindow'),
+        windowPhoto: document.getElementById('windowPhoto'),
+        scopeBgA: document.getElementById('scopeBgA'),
+        scopeBgB: document.getElementById('scopeBgB'),
+        staffBody: document.getElementById('staffBody'),
+        crossLayer: document.getElementById('crossLayer'),
+        modeSwitch: document.getElementById('modeSwitch'),
+        shotSwitch: document.getElementById('shotSwitch'),
+        stationTitle: document.getElementById('stationTitle'),
+        stationMeta: document.getElementById('stationMeta'),
+        observationGrid: document.getElementById('observationGrid'),
+        checkSummary: document.getElementById('checkSummary'),
+        checkGrid: document.getElementById('checkGrid'),
+        resultBox: document.getElementById('resultBox'),
+        historyList: document.getElementById('historyList'),
+        historyCount: document.getElementById('historyCount'),
+        settingsStatus: document.getElementById('settingsStatus'),
+        presetActions: document.getElementById('presetActions'),
+        newPracticeBtn: document.getElementById('newPracticeBtn'),
+        gradePracticeBtn: document.getElementById('gradePracticeBtn'),
+        revealPracticeBtn: document.getElementById('revealPracticeBtn'),
+        prevStationBtn: document.getElementById('prevStationBtn'),
+        nextStationBtn: document.getElementById('nextStationBtn'),
+        submitTestBtn: document.getElementById('submitTestBtn'),
+        startTestBtn: document.getElementById('startTestBtn')
+      };
+
+      const saved = loadStore();
+      const settings = normalizeSettings(saved.settings);
+      const state = {
+        mode: saved.mode === 'test' ? 'test' : 'practice',
+        settings,
+        currentShot: SHOTS.some(s => s.id === saved.currentShot) ? saved.currentShot : 'backBlack',
+        practiceStation: validStation(saved.practiceStation) ? saved.practiceStation : null,
+        practiceAnswers: savedObject(saved.practiceAnswers),
+        practiceGrade: null,
+        practiceReveal: false,
+        checksVisible: false,
+        flowNotice: '',
+        settingsSavedAt: typeof saved.settingsSavedAt === 'string' ? saved.settingsSavedAt : '',
+        practiceRecords: Array.isArray(saved.practiceRecords) ? saved.practiceRecords.slice(-120) : [],
+        mistakeStations: Array.isArray(saved.mistakeStations) ? saved.mistakeStations.slice(-60) : [],
+        testStations: Array.isArray(saved.testStations) ? saved.testStations.filter(validStation) : [],
+        testAnswers: savedObject(saved.testAnswers),
+        testIndex: Number.isInteger(saved.testIndex) ? saved.testIndex : 0,
+        testSubmitted: Boolean(saved.testSubmitted),
+        testGrade: saved.testGrade && Array.isArray(saved.testGrade.stationGrades) ? saved.testGrade : null,
+        testRecords: Array.isArray(saved.testRecords) ? saved.testRecords.slice(-60) : []
+      };
+
+      const sceneBackground = {
+        pageActive: 0,
+        scopeActive: 0,
+        src: '',
+        position: ''
+      };
+
+      if (!state.practiceStation) {
+        state.practiceStation = createStation(1, 0);
+      }
+      if (!state.testStations.length) {
+        createTest(false);
+      }
+
+      bindEvents();
+      syncSettingsInputs();
+      render();
+
+      function loadStore() {
+        try {
+          return JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {};
+        } catch (error) {
+          return {};
+        }
+      }
+
+      function normalizeSettings(source) {
+        const merged = { ...DEFAULT_SETTINGS, ...(source || {}) };
+        Object.keys(DEFAULT_SETTINGS).forEach(key => {
+          const fallback = DEFAULT_SETTINGS[key];
+          const value = Number(merged[key]);
+          merged[key] = Number.isFinite(value) ? value : fallback;
+        });
+        merged.testCount = clamp(Math.round(merged.testCount), 1, 30);
+        return merged;
+      }
+
+      function savedObject(value) {
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      }
+
+      function persist() {
+        const payload = {
+          mode: state.mode,
+          settings: state.settings,
+          settingsSavedAt: state.settingsSavedAt,
+          currentShot: state.currentShot,
+          practiceStation: state.practiceStation,
+          practiceAnswers: state.practiceAnswers,
+          practiceRecords: state.practiceRecords,
+          mistakeStations: state.mistakeStations,
+          testStations: state.testStations,
+          testAnswers: state.testAnswers,
+          testIndex: state.testIndex,
+          testSubmitted: state.testSubmitted,
+          testGrade: state.testGrade,
+          testRecords: state.testRecords,
+          savedAt: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+        } catch (error) {
+          console.warn('保存训练记录失败', error);
+        }
+      }
+
+      function bindEvents() {
+        document.addEventListener('click', event => {
+          const modeButton = event.target.closest('[data-mode]');
+          if (modeButton) {
+            setMode(modeButton.dataset.mode);
+            return;
+          }
+
+          const shotButton = event.target.closest('button[data-shot]');
+          if (shotButton) {
+            setCurrentShot(shotButton.dataset.shot);
+            return;
+          }
+
+          const actionButton = event.target.closest('[data-action]');
+          if (actionButton) {
+            handleAction(actionButton.dataset.action, actionButton);
+            return;
+          }
+
+          const mistakeButton = event.target.closest('[data-load-mistake]');
+          if (mistakeButton) {
+            loadMistake(mistakeButton.dataset.loadMistake);
+          }
+        });
+
+        document.addEventListener('focusin', event => {
+          const input = event.target.closest('[data-reading-key]');
+          if (!input) return;
+          const shot = input.dataset.shot;
+          if (shot && shot !== state.currentShot) {
+            setCurrentShot(shot);
+          }
+        });
+
+        document.addEventListener('input', event => {
+          const settingInput = event.target.closest('[data-setting]');
+          if (settingInput) {
+            updateSetting(settingInput);
+            return;
+          }
+
+          const readingInput = event.target.closest('[data-reading-key]');
+          if (readingInput) {
+            updateReading(readingInput);
+          }
+        });
+      }
+
+      function handleAction(action, actionButton) {
+        if (action === 'newPractice') newPracticeStation();
+        if (action === 'gradePractice') gradePractice();
+        if (action === 'revealPractice') revealPractice();
+        if (action === 'prevShot') moveShot(-1);
+        if (action === 'nextShot') moveShot(1);
+        if (action === 'prevStation') moveTestStation(-1);
+        if (action === 'nextStation') moveTestStation(1);
+        if (action === 'submitTest') submitTest();
+        if (action === 'startTest') {
+          state.mode = 'test';
+          state.checksVisible = false;
+          createTest(true);
+        }
+        if (action === 'resetSettings') resetSettings();
+        if (action === 'saveSettings') saveSettings();
+        if (action === 'resetRecords') resetRecords();
+        if (action === 'exportRecords') exportRecords();
+        if (action === 'applyPreset' && actionButton) applyPreset(actionButton.dataset.preset);
+      }
+
+      function setMode(mode) {
+        if (mode !== 'practice' && mode !== 'test') return;
+        state.mode = mode;
+        state.checksVisible = false;
+        if (mode === 'test' && !state.testStations.length) createTest(false);
+        persist();
+        render();
+      }
+
+      function setCurrentShot(shotId) {
+        if (!canOpenShot(shotId)) {
+          const firstBlocked = firstIncompleteShotId(activeAnswers(activeStation())) || 'backBlack';
+          const shot = SHOTS.find(item => item.id === firstBlocked) || SHOTS[0];
+          state.currentShot = shot.id;
+          state.flowNotice = '请先完成' + shot.label + '，再切换后续尺面';
+          persist();
+          render();
+          return;
+        }
+        state.currentShot = shotId;
+        state.flowNotice = '';
+        persist();
+        render();
+      }
+
+      function moveShot(delta) {
+        const index = SHOTS.findIndex(s => s.id === state.currentShot);
+        const next = clamp(index + delta, 0, SHOTS.length - 1);
+        setCurrentShot(SHOTS[next].id);
+      }
+
+      function normalizeCurrentShot() {
+        if (!SHOTS.some(shot => shot.id === state.currentShot)) {
+          state.currentShot = 'backBlack';
+        }
+        if (!canOpenShot(state.currentShot)) {
+          state.currentShot = firstIncompleteShotId(activeAnswers(activeStation())) || 'backBlack';
+        }
+      }
+
+      function canOpenShot(shotId) {
+        const index = SHOTS.findIndex(shot => shot.id === shotId);
+        if (index <= 0) return index === 0;
+        const answers = activeAnswers(activeStation());
+        for (let i = 0; i < index; i += 1) {
+          if (!isShotComplete(SHOTS[i].id, answers)) return false;
+        }
+        return true;
+      }
+
+      function isShotComplete(shotId, answers) {
+        const keys = SHOT_REQUIREMENTS[shotId] || [];
+        return keys.every(key => {
+          const parsed = parseReading(answers && answers[key]);
+          return parsed.present && parsed.valid && parsed.mm >= 100;
+        });
+      }
+
+      function firstIncompleteShotId(answers) {
+        const shot = SHOTS.find(item => !isShotComplete(item.id, answers));
+        return shot ? shot.id : SHOTS[SHOTS.length - 1].id;
+      }
+
+      function allFaceReadingsComplete(answers) {
+        return SHOTS.every(shot => isShotComplete(shot.id, answers));
+      }
+
+      function moveTestStation(delta) {
+        if (state.mode !== 'test') return;
+        state.testIndex = clamp(state.testIndex + delta, 0, state.testStations.length - 1);
+        state.currentShot = 'backBlack';
+        state.checksVisible = false;
+        persist();
+        render();
+      }
+
+      function newPracticeStation() {
+        const number = state.practiceRecords.length + 1;
+        state.practiceStation = createStation(number, 0);
+        state.practiceAnswers = {};
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        state.checksVisible = false;
+        state.currentShot = 'backBlack';
+        state.mode = 'practice';
+        persist();
+        render();
+      }
+
+      function createTest(shouldRender) {
+        const stations = [];
+        let cumulative = 0;
+        for (let i = 0; i < state.settings.testCount; i += 1) {
+          const station = createStation(i + 1, cumulative);
+          const calc = computeFromValues(expectedValues(station), station, cumulative);
+          cumulative = Number.isFinite(calc.cumulativeSightDiffM) ? calc.cumulativeSightDiffM : cumulative;
+          station.standardCumulativeAfterM = cumulative;
+          stations.push(station);
+        }
+        state.testStations = stations;
+        state.testAnswers = {};
+        state.testIndex = 0;
+        state.testSubmitted = false;
+        state.testGrade = null;
+        state.checksVisible = false;
+        state.currentShot = 'backBlack';
+        if (shouldRender) {
+          persist();
+          render();
+        }
+      }
+
+      function gradePractice() {
+        const grade = gradeStation(state.practiceStation, state.practiceAnswers, 0);
+        state.practiceGrade = grade;
+        state.practiceReveal = false;
+        state.checksVisible = true;
+        const record = {
+          id: uniqueId('practice'),
+          type: '练习',
+          at: new Date().toISOString(),
+          stationNumber: state.practiceStation.number,
+          correct: grade.passed,
+          score: grade.passed ? 100 : 0,
+          issueText: issueText(grade)
+        };
+        state.practiceRecords.push(record);
+        state.practiceRecords = state.practiceRecords.slice(-120);
+        if (!grade.passed) {
+          rememberMistake(state.practiceStation, grade, state.practiceAnswers);
+        }
+        persist();
+        render();
+      }
+
+      function revealPractice() {
+        state.practiceReveal = true;
+        state.checksVisible = true;
+        state.practiceGrade = gradeStation(state.practiceStation, state.practiceAnswers, 0, { revealOnly: true });
+        persist();
+        render();
+      }
+
+      function submitTest() {
+        if (!state.testStations.length) return;
+        const stationGrades = [];
+        let correct = 0;
+        let answered = 0;
+        let cumulative = 0;
+
+        state.testStations.forEach(station => {
+          const answers = state.testAnswers[station.id] || {};
+          if (hasAnyAnswer(answers)) answered += 1;
+          const grade = gradeStation(station, answers, cumulative);
+          if (grade.passed) correct += 1;
+          if (Number.isFinite(grade.calc.cumulativeSightDiffM)) {
+            cumulative = grade.calc.cumulativeSightDiffM;
+          }
+          stationGrades.push(grade);
+          if (!grade.passed) rememberMistake(station, grade, answers);
+        });
+
+        const total = state.testStations.length;
+        const accuracy = total ? Math.round(correct / total * 100) : 0;
+        state.testSubmitted = true;
+        state.checksVisible = true;
+        state.testGrade = {
+          id: uniqueId('test'),
+          at: new Date().toISOString(),
+          total,
+          answered,
+          correct,
+          wrong: total - correct,
+          accuracy,
+          stationGrades
+        };
+        state.testRecords.push({
+          id: state.testGrade.id,
+          type: '测验',
+          at: state.testGrade.at,
+          total,
+          answered,
+          correct,
+          wrong: total - correct,
+          accuracy
+        });
+        state.testRecords = state.testRecords.slice(-60);
+        persist();
+        render();
+      }
+
+      function rememberMistake(station, grade, answers) {
+        state.mistakeStations.unshift({
+          id: uniqueId('mistake'),
+          at: new Date().toISOString(),
+          station: clone(station),
+          answers: clone(answers),
+          issueText: issueText(grade)
+        });
+        state.mistakeStations = state.mistakeStations.slice(0, 60);
+      }
+
+      function loadMistake(id) {
+        const item = state.mistakeStations.find(entry => entry.id === id);
+        if (!item) return;
+        state.mode = 'practice';
+        state.practiceStation = clone(item.station);
+        state.practiceAnswers = {};
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        state.checksVisible = false;
+        state.currentShot = 'backBlack';
+        persist();
+        render();
+      }
+
+      function resetSettings() {
+        Object.assign(state.settings, DEFAULT_SETTINGS);
+        syncSettingsInputs();
+        state.settingsSavedAt = '';
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        state.checksVisible = false;
+        state.testSubmitted = false;
+        state.testGrade = null;
+        persist();
+        render();
+      }
+
+      function saveSettings() {
+        state.settingsSavedAt = new Date().toISOString();
+        persist();
+        renderSettingsStatus();
+      }
+
+      function applyPreset(name) {
+        const preset = SETTING_PRESETS[name];
+        if (!preset) return;
+        Object.assign(state.settings, preset.values);
+        syncSettingsInputs();
+        state.settingsSavedAt = '';
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        state.checksVisible = false;
+        state.testSubmitted = false;
+        state.testGrade = null;
+        state.flowNotice = '已应用' + preset.label + '限差，可继续手动微调';
+        persist();
+        render();
+      }
+
+      function resetRecords() {
+        state.practiceRecords = [];
+        state.testRecords = [];
+        state.mistakeStations = [];
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        state.checksVisible = false;
+        state.testSubmitted = false;
+        state.testGrade = null;
+        persist();
+        render();
+      }
+
+      function exportRecords() {
+        const lines = [];
+        lines.push('四等水准红黑面读数训练成绩');
+        lines.push('导出时间：' + formatDate(new Date().toISOString()));
+        lines.push('');
+        lines.push('练习记录');
+        if (!state.practiceRecords.length) lines.push('无');
+        state.practiceRecords.forEach(record => {
+          lines.push(formatDate(record.at) + '  测站' + record.stationNumber + '  ' + (record.correct ? '通过' : '未通过') + '  ' + (record.issueText || ''));
+        });
+        lines.push('');
+        lines.push('测验记录');
+        if (!state.testRecords.length) lines.push('无');
+        state.testRecords.forEach(record => {
+          lines.push(formatDate(record.at) + '  ' + record.correct + '/' + record.total + '  正确率' + record.accuracy + '%  已答' + record.answered);
+        });
+        lines.push('');
+        lines.push('错站');
+        if (!state.mistakeStations.length) lines.push('无');
+        state.mistakeStations.slice(0, 30).forEach((item, index) => {
+          lines.push((index + 1) + '. ' + formatDate(item.at) + '  ' + item.issueText);
+        });
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '四等水准红黑面读数训练成绩.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function updateSetting(input) {
+        const key = input.dataset.setting;
+        if (!Object.prototype.hasOwnProperty.call(DEFAULT_SETTINGS, key)) return;
+        const raw = Number(input.value);
+        if (!Number.isFinite(raw)) return;
+        let value = raw;
+        if (key === 'testCount') value = clamp(Math.round(value), 1, 30);
+        if (key !== 'testCount') value = Math.max(0, value);
+        state.settings[key] = value;
+        state.settingsSavedAt = '';
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        state.checksVisible = false;
+        state.flowNotice = '';
+        if (state.mode === 'test') {
+          state.testSubmitted = false;
+          state.testGrade = null;
+        }
+        persist();
+        render();
+      }
+
+      function updateReading(input) {
+        const key = input.dataset.readingKey;
+        const shot = input.dataset.shot;
+        const station = activeStation();
+        const answers = activeAnswers(station);
+        const wasComplete = shot ? isShotComplete(shot, answers) : allFaceReadingsComplete(answers);
+        const hadReview = state.mode === 'test'
+          ? state.testSubmitted
+          : Boolean(state.checksVisible || state.practiceGrade || state.practiceReveal);
+        answers[key] = input.value;
+        state.flowNotice = '';
+        if (state.mode === 'practice') {
+          state.practiceGrade = null;
+          state.practiceReveal = false;
+          state.checksVisible = false;
+        }
+        if (state.mode === 'test' && state.testSubmitted) {
+          state.testSubmitted = false;
+          state.testGrade = null;
+          state.checksVisible = false;
+        }
+        persist();
+        if (hadReview) {
+          render();
+          return;
+        }
+        if (shot && wasComplete !== isShotComplete(shot, answers)) {
+          render();
+          return;
+        }
+        if (!shot && wasComplete !== allFaceReadingsComplete(answers)) {
+          render();
+          return;
+        }
+        renderChecks();
+        renderHeaderStats();
+      }
+
+      function render() {
+        normalizeCurrentShot();
+        renderModeButtons();
+        renderShotButtons();
+        renderPresetButtons();
+        renderSettingsStatus();
+        renderHeaderStats();
+        renderToolbar();
+        renderStaff();
+        renderObservationGrid();
+        renderChecks();
+        renderHistory();
+        syncSettingsInputs();
+      }
+
+      function renderModeButtons() {
+        [...els.modeSwitch.querySelectorAll('[data-mode]')].forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === state.mode);
+        });
+      }
+
+      function renderShotButtons() {
+        [...els.shotSwitch.querySelectorAll('[data-shot]')].forEach(btn => {
+          const locked = !canOpenShot(btn.dataset.shot);
+          btn.classList.toggle('active', btn.dataset.shot === state.currentShot);
+          btn.classList.toggle('locked', locked);
+          btn.disabled = locked;
+          btn.title = locked ? '请先完成前面的尺面读数' : '';
+        });
+      }
+
+      function renderPresetButtons() {
+        [...els.presetActions.querySelectorAll('[data-preset]')].forEach(btn => {
+          const preset = SETTING_PRESETS[btn.dataset.preset];
+          const active = preset && Object.keys(preset.values).every(key => Number(state.settings[key]) === Number(preset.values[key]));
+          btn.classList.toggle('active', Boolean(active));
+        });
+      }
+
+      function renderSettingsStatus() {
+        if (!els.settingsStatus) return;
+        if (!state.settingsSavedAt) {
+          els.settingsStatus.textContent = '待保存';
+          return;
+        }
+        const date = new Date(state.settingsSavedAt);
+        if (!Number.isFinite(date.getTime())) {
+          els.settingsStatus.textContent = '本机保存';
+          return;
+        }
+        els.settingsStatus.textContent = '已保存 ' + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+      }
+
+      function renderHeaderStats() {
+        if (state.mode === 'test') {
+          const total = state.testStations.length;
+          const answered = state.testStations.filter(st => hasAnyAnswer(state.testAnswers[st.id] || {})).length;
+          const summary = state.testGrade;
+          els.statMode.textContent = '测验';
+          els.statDone.textContent = summary ? summary.correct + '/' + summary.total : answered + '/' + total;
+          els.statDoneLabel.textContent = summary ? '通过测站' : '已答测站';
+          els.statAccuracy.textContent = summary ? summary.accuracy + '%' : '待交卷';
+          els.statMistakes.textContent = state.mistakeStations.length;
+          return;
+        }
+
+        const total = state.practiceRecords.length;
+        const correct = state.practiceRecords.filter(record => record.correct).length;
+        els.statMode.textContent = '练习';
+        els.statDone.textContent = total;
+        els.statDoneLabel.textContent = '已练测站';
+        els.statAccuracy.textContent = total ? Math.round(correct / total * 100) + '%' : '0%';
+        els.statMistakes.textContent = state.mistakeStations.length;
+      }
+
+      function renderToolbar() {
+        const station = activeStation();
+        if (!station) return;
+        if (state.mode === 'test') {
+          els.stationTitle.textContent = '测验测站 ' + (state.testIndex + 1) + ' / ' + state.testStations.length;
+        } else {
+          els.stationTitle.textContent = '练习测站 ' + station.number;
+        }
+        els.stationMeta.textContent = '后尺常数 ' + station.back.constant + 'mm，前尺常数 ' + station.fore.constant + 'mm';
+
+        const practice = state.mode === 'practice';
+        els.newPracticeBtn.classList.toggle('hidden', !practice);
+        els.gradePracticeBtn.classList.toggle('hidden', !practice);
+        els.revealPracticeBtn.classList.toggle('hidden', !practice);
+        els.prevStationBtn.classList.toggle('hidden', practice);
+        els.nextStationBtn.classList.toggle('hidden', practice);
+        els.submitTestBtn.classList.toggle('hidden', practice);
+        els.startTestBtn.classList.toggle('hidden', practice);
+        els.prevStationBtn.disabled = state.testIndex <= 0;
+        els.nextStationBtn.disabled = state.testIndex >= state.testStations.length - 1;
+        els.submitTestBtn.textContent = state.testSubmitted ? '重新交卷' : '交卷';
+      }
+
+      function renderStaff() {
+        const station = activeStation();
+        const shot = SHOTS.find(item => item.id === state.currentShot) || SHOTS[0];
+        if (!station) return;
+        const rod = station[shot.rod];
+        const red = shot.face === '红面';
+        const target = red ? rod.redMid : rod.blackMid;
+        const sightGapMm = Math.max(160, rod.blackUpper - rod.blackLower);
+
+        els.shotLabel.textContent = shot.label + ' · 视距 ' + ((rod.blackUpper - rod.blackLower) / 10).toFixed(1) + 'm';
+        els.rodRole.textContent = shot.role;
+        els.rodFace.textContent = shot.face;
+        els.rodConstant.textContent = rod.constant;
+        renderScopeBackground(station, shot);
+        renderFlowHint(station, shot);
+        els.staffBody.classList.toggle('red-face', red);
+        els.staffBody.innerHTML = '';
+        els.crossLayer.innerHTML = '';
+
+        const size = Math.max(260, els.staffWindow.clientWidth || 312);
+        const center = size / 2;
+        // DS3 水准仪物镜视场角约1°26'，视距丝间隔对应的视场占比约40%，
+        // 故镜筒可视范围按视距丝间隔的固定比例放大，不再叠加与距离无关的常量余量
+        const reticleHalf = Math.round(size * 0.20);
+        const mmToPx = (reticleHalf * 2) / sightGapMm;
+        const visibleMm = Math.ceil((size / mmToPx) * 1.08);
+        const start = Math.max(0, Math.floor((target - visibleMm / 2) / 10) * 10);
+        const end = Math.ceil((target + visibleMm / 2) / 10) * 10;
+        const staffHeight = Math.max(size + 80, (end - start) * mmToPx);
+        const staffWidth = clamp(Math.round(360 * mmToPx), 96, Math.round(size * 0.58));
+        const staffTop = center - (end - target) * mmToPx;
+        const edgeWidth = Math.max(2, staffWidth * 0.018);
+        const hairline = Math.max(0.7, staffWidth * 0.0045);
+        const markRadius = Math.max(1, staffWidth * 0.006);
+
+        els.staffBody.style.width = staffWidth + 'px';
+        els.staffBody.style.height = staffHeight + 'px';
+        els.staffBody.style.top = staffTop + 'px';
+        els.staffBody.style.setProperty('--staff-num-size', Math.round(staffWidth * 0.16) + 'px');
+        els.staffBody.style.setProperty('--staff-edge-width', edgeWidth.toFixed(2) + 'px');
+        els.staffBody.style.setProperty('--staff-hairline', hairline.toFixed(2) + 'px');
+        els.staffBody.style.setProperty('--staff-mark-radius', markRadius.toFixed(2) + 'px');
+        els.staffBody.style.setProperty('--staff-shadow-blur', Math.round(staffWidth * 0.08) + 'px');
+
+        renderStaffScale({
+          body: els.staffBody,
+          red,
+          start,
+          end,
+          mmToPx,
+          // 实体尺是3m尺：黑面刻度不超过3000mm，红面刻度（=黑面常数+黑面位置）不超过常数+3000mm
+          maxPrinted: red ? rod.constant + 3000 : 3000
+        });
+
+        [
+          { label: '上丝', top: center - reticleHalf, cls: 'upper' },
+          { label: '中丝', top: center, cls: red ? 'middle red' : 'middle' },
+          { label: '下丝', top: center + reticleHalf, cls: 'lower' }
+        ].forEach(line => {
+          const cross = document.createElement('div');
+          cross.className = 'cross-line ' + line.cls;
+          cross.style.top = line.top + 'px';
+          const label = document.createElement('span');
+          label.textContent = line.label;
+          cross.appendChild(label);
+          els.crossLayer.appendChild(cross);
+        });
+      }
+
+      function renderScopeBackground(station, shot) {
+        const base = Number.isInteger(station.backgroundIndex)
+          ? station.backgroundIndex
+          : Math.abs(hashString(station.id || String(station.number || 'station'))) % STAFF_BACKGROUNDS.length;
+        const roleOffset = shot.rod === 'fore' ? 1 : 0;
+        const bg = STAFF_BACKGROUNDS[(base + roleOffset) % STAFF_BACKGROUNDS.length];
+        setSceneBackground(bg);
+      }
+
+      function setSceneBackground(bg) {
+        const src = bg && bg.src ? bg.src : STAFF_BACKGROUNDS[0].src;
+        const position = bg && bg.position ? bg.position : 'center center';
+        if (sceneBackground.src === src && sceneBackground.position === position) return;
+        const immediate = !sceneBackground.src;
+        sceneBackground.src = src;
+        sceneBackground.position = position;
+        updateBackgroundPair(els.pageBgA, els.pageBgB, 'pageActive', src, position, immediate);
+        updateBackgroundPair(els.scopeBgA, els.scopeBgB, 'scopeActive', src, position, immediate);
+      }
+
+      function updateBackgroundPair(layerA, layerB, activeKey, src, position, immediate) {
+        const layers = [layerA, layerB].filter(Boolean);
+        if (!layers.length) return;
+        const activeIndex = sceneBackground[activeKey] || 0;
+
+        if (immediate || layers.length === 1) {
+          layers.forEach((layer, index) => {
+            layer.style.backgroundImage = 'url("' + src + '")';
+            layer.style.backgroundPosition = position;
+            layer.classList.toggle('is-active', index === activeIndex);
+          });
+          return;
+        }
+
+        const nextIndex = activeIndex === 0 ? 1 : 0;
+        const current = layers[activeIndex];
+        const next = layers[nextIndex] || layers[0];
+        next.style.backgroundImage = 'url("' + src + '")';
+        next.style.backgroundPosition = position;
+        requestAnimationFrame(() => {
+          next.classList.add('is-active');
+          if (current && current !== next) current.classList.remove('is-active');
+        });
+        sceneBackground[activeKey] = nextIndex;
+      }
+
+      function renderFlowHint(station, shot) {
+        const answers = activeAnswers(station);
+        const complete = isShotComplete(shot.id, answers);
+        const firstIncomplete = firstIncompleteShotId(answers);
+        let text = state.flowNotice || '';
+
+        if (!text) {
+          if (allFaceReadingsComplete(answers)) {
+            text = '本测站黑面、红面读数已完成，可提交复核';
+          } else if (complete) {
+            const next = SHOTS[clamp(SHOTS.findIndex(item => item.id === shot.id) + 1, 0, SHOTS.length - 1)];
+            text = next && next.id !== shot.id ? '本项已完成，可进入' + next.label : '本项已完成';
+          } else {
+            const current = SHOTS.find(item => item.id === firstIncomplete) || shot;
+            text = '请先完成' + current.label + '，再进入后续尺面';
+          }
+        }
+
+        els.flowHint.textContent = text;
+        els.flowHint.classList.toggle('warn', Boolean(state.flowNotice));
+      }
+
+      function renderStaffScale({ body, red, start, end, mmToPx, maxPrinted }) {
+        const colorClass = red ? ' red' : '';
+        const yOf = value => (end - value) * mmToPx;
+
+        for (let value = Math.floor(start / 100) * 100; value <= end; value += 100) {
+          if (value <= 0) continue;
+          if (Number.isFinite(maxPrinted) && value >= maxPrinted) continue;
+          const decimeter = Math.floor(value / 100);
+          const flip = decimeter % 2 === 0;
+
+          // Each 100mm decimeter splits into two 50mm halves:
+          //   Lower 50mm (value to value+50): E-mark
+          //   Upper 50mm (value+50 to value+100): 5 × 10mm alternating sections
+          //     value+50~60: background gap
+          //     value+60~70: colored bar  ← draw this
+          //     value+70~80: background gap
+          //     value+80~90: colored bar  ← draw this
+          //     value+90~100: background gap
+          // The 3 background gaps show naturally as the dark/white staff body behind.
+
+          const eHeight = 50 * mmToPx;
+          if (eHeight >= 0.5) {
+            const mark = document.createElement('div');
+            mark.className = 'e-mark' + colorClass + (flip ? ' flip' : '');
+            mark.style.top = yOf(value + 50) + 'px';
+            mark.style.height = eHeight + 'px';
+            mark.innerHTML = '<span class="e-stem"></span><span class="e-bar top"></span><span class="e-bar middle"></span><span class="e-bar bottom"></span>';
+            body.appendChild(mark);
+          }
+
+          // Number centered on E-mark (at value+25)
+          const number = document.createElement('div');
+          number.className = 'staff-number' + colorClass + (flip ? ' left' : ' right');
+          number.style.top = yOf(value + 25) + 'px';
+          number.textContent = String(decimeter).padStart(2, '0');
+          body.appendChild(number);
+
+          // Two 1cm colored bars in the upper half
+          const cmHeight = 10 * mmToPx;
+          if (cmHeight >= 1) {
+            [[60, 70], [80, 90]].forEach(([lo, hi]) => {
+              const bar = document.createElement('div');
+              bar.className = 'cm-bar' + colorClass;
+              bar.style.top = yOf(value + hi) + 'px';
+              bar.style.height = cmHeight + 'px';
+              body.appendChild(bar);
+            });
+          }
+        }
+      }
+
+      function renderObservationGrid() {
+        const station = activeStation();
+        const answers = activeAnswers(station);
+        const grade = visibleGrade();
+        const expected = station ? expectedValues(station) : {};
+        const reveal = state.practiceReveal || state.testSubmitted;
+        const disabled = state.mode === 'test' && state.testSubmitted;
+        const details = grade ? grade.details : {};
+        const idealCalc = station ? computeFromValues(expected, station, station.cumulativeBeforeM) : {};
+        const specByKey = {};
+        getDerivedFieldSpecs(idealCalc, state.settings).forEach(spec => { specByKey[spec.key] = spec; });
+
+        function inputTd(key, shot, colspan) {
+          const detail = details[key];
+          const cls = detail && detail.present ? (detail.ok ? 'good' : 'bad') : '';
+          const locked = !canOpenShot(shot);
+          const answerText = reveal && expected[key] != null
+            ? '标答 ' + formatM(expected[key])
+            : locked ? '先完成前一项' : '';
+          const value = answers[key] == null ? '' : String(answers[key]);
+          return (
+            '<td' + (colspan ? ' colspan="' + colspan + '"' : '') + (locked ? ' class="locked"' : '') + '>' +
+              '<input class="' + cls + '" ' + (disabled || locked ? 'disabled ' : '') +
+                'inputmode="numeric" autocomplete="off" placeholder="0000" ' +
+                'data-reading-key="' + key + '" data-shot="' + shot + '" ' +
+                'aria-label="' + escapeHtml(OBS_LABELS[key]) + '" value="' + escapeHtml(value) + '">' +
+              '<span class="answer-line' + (locked ? ' lock-line' : '') + '">' + escapeHtml(answerText) + '</span>' +
+            '</td>'
+          );
+        }
+
+        function calcInputTd(key, rowspan, colspan) {
+          const spec = specByKey[key];
+          const detail = details[key];
+          const cls = detail && detail.present ? (detail.ok ? 'good' : 'bad') : '';
+          const answerText = reveal && spec && spec.expected != null ? '标答 ' + spec.format(spec.expected) : '';
+          const value = answers[key] == null ? '' : String(answers[key]);
+          return (
+            '<td' + (rowspan ? ' rowspan="' + rowspan + '"' : '') + (colspan ? ' colspan="' + colspan + '"' : '') + '>' +
+              '<input class="' + cls + '" ' + (disabled ? 'disabled ' : '') +
+                'inputmode="decimal" autocomplete="off" placeholder="' + (spec ? spec.placeholder : '') + '" ' +
+                'data-reading-key="' + key + '" ' +
+                'aria-label="' + escapeHtml(OBS_LABELS[key] || key) + '" value="' + escapeHtml(value) + '">' +
+              '<span class="answer-line">' + escapeHtml(answerText) + '</span>' +
+            '</td>'
+          );
+        }
+
+        function blankTd() {
+          return '<td></td>';
+        }
+
+        function dirTd(text) {
+          return '<td class="dir-cell">' + escapeHtml(text) + '</td>';
+        }
+
+        const stationLabel = station ? String(station.number) : '';
+        const notesValue = answers.notes == null ? '' : String(answers.notes);
+        const notesTd = (
+          '<td rowspan="4">' +
+            '<input ' + (disabled ? 'disabled ' : '') +
+              'autocomplete="off" data-reading-key="notes" aria-label="备考" value="' + escapeHtml(notesValue) + '">' +
+          '</td>'
+        );
+
+        const rows = [];
+
+        rows.push(
+          '<tr>' +
+            '<td class="station-cell" rowspan="4">' + escapeHtml(stationLabel) + '</td>' +
+            inputTd('backBlackUpper', 'backBlack', 2) +
+            inputTd('foreBlackUpper', 'foreBlack', 2) +
+            dirTd('后') +
+            inputTd('backBlackMid', 'backBlack') +
+            inputTd('backRedMid', 'backRed') +
+            calcInputTd('back9') +
+            calcInputTd('mean14', 4) +
+            notesTd +
+          '</tr>'
+        );
+
+        rows.push(
+          '<tr>' +
+            inputTd('backBlackLower', 'backBlack', 2) +
+            inputTd('foreBlackLower', 'foreBlack', 2) +
+            dirTd('前') +
+            inputTd('foreBlackMid', 'foreBlack') +
+            inputTd('foreRedMid', 'foreRed') +
+            calcInputTd('front10') +
+          '</tr>'
+        );
+
+        rows.push(
+          '<tr>' +
+            calcInputTd('backDist', null, 2) +
+            calcInputTd('foreDist', null, 2) +
+            dirTd('后－前') +
+            calcInputTd('blackHeightDiff') +
+            calcInputTd('rawRedHeightDiff') +
+            calcInputTd('check13') +
+          '</tr>'
+        );
+
+        rows.push(
+          '<tr>' +
+            calcInputTd('sightDiff', null, 2) +
+            calcInputTd('cumulativeSightDiff', null, 2) +
+            blankTd() +
+            blankTd() +
+            blankTd() +
+            blankTd() +
+          '</tr>'
+        );
+
+        els.observationGrid.innerHTML = rows.join('');
+      }
+
+      function renderChecks() {
+        const station = activeStation();
+        if (!station) return;
+        const answers = activeAnswers(station);
+        const shouldShow = state.mode === 'test' ? state.testSubmitted : state.checksVisible;
+        if (!shouldShow) {
+          renderCheckPlaceholder(answers);
+          return;
+        }
+        const grade = visibleGrade() || gradeStation(station, answers, cumulativeBeforeActiveStation());
+        const calc = grade.calc;
+        const settings = state.settings;
+        const items = [
+          {
+            label: '后视距',
+            value: calc.backDistanceM,
+            unit: 'm',
+            ok: calc.backDistanceM != null ? calc.backDistanceM > 0 && calc.backDistanceM <= settings.sightMaxM : null
+          },
+          {
+            label: '前视距',
+            value: calc.foreDistanceM,
+            unit: 'm',
+            ok: calc.foreDistanceM != null ? calc.foreDistanceM > 0 && calc.foreDistanceM <= settings.sightMaxM : null
+          },
+          {
+            label: '前后距差',
+            value: calc.sightDiffM,
+            unit: 'm',
+            ok: calc.sightDiffM != null ? Math.abs(calc.sightDiffM) <= settings.sightDiffMaxM : null
+          },
+          {
+            label: '累计距差',
+            value: calc.cumulativeSightDiffM,
+            unit: 'm',
+            ok: calc.cumulativeSightDiffM != null ? Math.abs(calc.cumulativeSightDiffM) <= settings.cumulativeSightDiffMaxM : null
+          },
+          {
+            label: '后尺红黑差',
+            value: calc.backRedBlackDiffMm,
+            unit: 'mm',
+            ok: calc.backRedBlackDiffMm != null ? Math.abs(calc.backRedBlackDiffMm) <= settings.redBlackDiffMm : null
+          },
+          {
+            label: '前尺红黑差',
+            value: calc.foreRedBlackDiffMm,
+            unit: 'mm',
+            ok: calc.foreRedBlackDiffMm != null ? Math.abs(calc.foreRedBlackDiffMm) <= settings.redBlackDiffMm : null
+          },
+          {
+            label: '黑面高差',
+            value: calc.blackHeightDiffMm,
+            unit: 'mm',
+            ok: null
+          },
+          {
+            label: '高差辅差',
+            value: calc.heightDiscrepancyMm,
+            unit: 'mm',
+            ok: calc.heightDiscrepancyMm != null ? Math.abs(calc.heightDiscrepancyMm) <= settings.heightDiffMm : null
+          }
+        ];
+
+        els.checkGrid.innerHTML = items.map(item => {
+          const cls = item.ok == null ? '' : item.ok ? ' pass' : ' fail';
+          return '<div class="check-item' + cls + '">' +
+            '<strong>' + formatCalcValue(item.value, item.unit) + '</strong>' +
+            '<span>' + escapeHtml(item.label) + '</span>' +
+          '</div>';
+        }).join('');
+
+        renderResultBox(grade);
+      }
+
+      function renderCheckPlaceholder(answers) {
+        const complete = allFaceReadingsComplete(answers);
+        els.checkSummary.textContent = complete ? '待提交' : '待读数';
+        els.checkGrid.innerHTML = '<div class="check-placeholder">' +
+          (complete ? '读数已完成，点击“提交复核”查看视距、红黑面差和高差辅差。' : '按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数后，再提交复核。') +
+          '</div>';
+        els.resultBox.className = 'result-box neutral';
+        els.resultBox.innerHTML = '<p class="result-title">' + (complete ? '可以提交复核' : '当前测站待读数') + '</p>';
+      }
+
+      function renderResultBox(grade) {
+        const hasIssues = grade.issues.filter(issue => issue.kind !== 'missing').length > 0;
+        const missing = grade.issues.some(issue => issue.kind === 'missing' || issue.kind === 'invalid');
+
+        if (grade.passed) {
+          els.checkSummary.textContent = '通过';
+          els.resultBox.className = 'result-box good';
+          els.resultBox.innerHTML = '<p class="result-title">本测站通过</p>';
+          return;
+        }
+
+        els.checkSummary.textContent = '未通过';
+        els.resultBox.className = 'result-box bad';
+        const issues = grade.issues.slice(0, 7).map(issue => '<li>' + escapeHtml(issue.message) + '</li>').join('');
+        els.resultBox.innerHTML = '<p class="result-title">本测站未通过</p><ul class="issue-list">' + issues + '</ul>';
+      }
+
+      function renderHistory() {
+        const rows = [];
+        const latestTests = state.testRecords.slice(-3).reverse();
+        const latestPractice = state.practiceRecords.slice(-4).reverse();
+
+        latestTests.forEach(record => {
+          rows.push(
+            '<div class="history-item">' +
+              '<strong><span class="tag ' + (record.accuracy >= 80 ? 'good' : record.accuracy >= 60 ? 'neutral' : 'bad') + '">测验</span> ' + formatDate(record.at) + '</strong>' +
+              '<span>通过 ' + record.correct + '/' + record.total + '，正确率 ' + record.accuracy + '%，已答 ' + record.answered + '</span>' +
+            '</div>'
+          );
+        });
+
+        latestPractice.forEach(record => {
+          rows.push(
+            '<div class="history-item">' +
+              '<strong><span class="tag ' + (record.correct ? 'good' : 'bad') + '">' + (record.correct ? '通过' : '错站') + '</span> 测站 ' + record.stationNumber + '</strong>' +
+              '<span>' + formatDate(record.at) + (record.issueText ? '，' + escapeHtml(record.issueText) : '') + '</span>' +
+            '</div>'
+          );
+        });
+
+        state.mistakeStations.slice(0, 6).forEach(item => {
+          rows.push(
+            '<div class="history-item">' +
+              '<strong><span class="tag bad">补练</span> 错站 ' + escapeHtml(item.station.number || '') + '</strong>' +
+              '<span>' + escapeHtml(item.issueText || '读数或校核未通过') + '</span>' +
+              '<div class="small-row"><span>' + formatDate(item.at) + '</span><button data-load-mistake="' + item.id + '">载入</button></div>' +
+            '</div>'
+          );
+        });
+
+        els.historyCount.textContent = (state.practiceRecords.length + state.testRecords.length) + ' 条';
+        els.historyList.innerHTML = rows.length ? rows.join('') : '<div class="history-item"><strong>暂无记录</strong><span>完成练习或测验后显示</span></div>';
+      }
+
+      function syncSettingsInputs() {
+        document.querySelectorAll('[data-setting]').forEach(input => {
+          const key = input.dataset.setting;
+          if (document.activeElement === input) return;
+          input.value = state.settings[key];
+        });
+      }
+
+      function activeStation() {
+        if (state.mode === 'test') {
+          return state.testStations[state.testIndex] || state.testStations[0] || state.practiceStation;
+        }
+        return state.practiceStation;
+      }
+
+      function activeAnswers(station) {
+        if (state.mode === 'test') {
+          if (!station) return {};
+          if (!state.testAnswers[station.id]) state.testAnswers[station.id] = {};
+          return state.testAnswers[station.id];
+        }
+        return state.practiceAnswers;
+      }
+
+      function visibleGrade() {
+        if (state.mode === 'test') {
+          return state.testSubmitted && state.testGrade ? state.testGrade.stationGrades[state.testIndex] : null;
+        }
+        return state.practiceGrade;
+      }
+
+      function cumulativeBeforeActiveStation() {
+        if (state.mode !== 'test') return 0;
+        let cumulative = 0;
+        for (let i = 0; i < state.testIndex; i += 1) {
+          const station = state.testStations[i];
+          const answers = state.testAnswers[station.id] || {};
+          const grade = gradeStation(station, answers, cumulative, { live: true });
+          if (Number.isFinite(grade.calc.cumulativeSightDiffM)) {
+            cumulative = grade.calc.cumulativeSightDiffM;
+          }
+        }
+        return cumulative;
+      }
+
+      function createStation(number, cumulativeBeforeM) {
+        const swap = Math.random() < 0.5;
+        const backConstant = swap ? state.settings.rodBConstantMm : state.settings.rodAConstantMm;
+        const foreConstant = swap ? state.settings.rodAConstantMm : state.settings.rodBConstantMm;
+        // 1mm 粒度取值（0.1m精度），让视距不是整米数
+        const backGap = randomInt(280, 780);
+        const maxDeltaMm = Math.max(0, Math.min(40, Math.round((state.settings.sightDiffMaxM || 0) * 10)));
+        const cumulativeLimitMm = Math.max(0, ((state.settings.cumulativeSightDiffMaxM || 0) - 1) * 10);
+        let minDeltaMm = -maxDeltaMm;
+        let maxDeltaMmAllowed = maxDeltaMm;
+        if (Number.isFinite(cumulativeBeforeM)) {
+          const cumulativeBeforeMm = cumulativeBeforeM * 10;
+          minDeltaMm = Math.max(minDeltaMm, Math.ceil(-cumulativeLimitMm - cumulativeBeforeMm));
+          maxDeltaMmAllowed = Math.min(maxDeltaMmAllowed, Math.floor(cumulativeLimitMm - cumulativeBeforeMm));
+        }
+        if (minDeltaMm > maxDeltaMmAllowed) {
+          minDeltaMm = -maxDeltaMm;
+          maxDeltaMmAllowed = maxDeltaMm;
+        }
+        const sightDeltaMm = randomInt(minDeltaMm, maxDeltaMmAllowed);
+        const foreGap = clamp(backGap - sightDeltaMm, 240, 820);
+        const station = {
+          id: uniqueId('station'),
+          number,
+          cumulativeBeforeM: Number.isFinite(cumulativeBeforeM) ? cumulativeBeforeM : 0,
+          backgroundIndex: randomInt(0, STAFF_BACKGROUNDS.length - 1),
+          back: createRod(backConstant, backGap),
+          fore: createRod(foreConstant, foreGap)
+        };
+        return station;
+      }
+
+      function createRod(constant, gap) {
+        const half = gap / 2;
+        const minMid = Math.ceil(760 + half);
+        const maxMid = Math.floor(3000 - half);
+        const mid = randomInt(minMid, maxMid);
+        const redError = randomInt(-1, 1);
+        return {
+          constant,
+          blackUpper: mid + half,
+          blackMid: mid,
+          blackLower: mid - half,
+          redMid: mid + constant + redError
+        };
+      }
+
+      function validStation(station) {
+        return station
+          && station.back
+          && station.fore
+          && Number.isFinite(Number(station.back.blackMid))
+          && Number.isFinite(Number(station.fore.blackMid));
+      }
+
+      function expectedValues(station) {
+        return {
+          backBlackUpper: station.back.blackUpper,
+          backBlackMid: station.back.blackMid,
+          backBlackLower: station.back.blackLower,
+          backRedMid: station.back.redMid,
+          foreBlackUpper: station.fore.blackUpper,
+          foreBlackMid: station.fore.blackMid,
+          foreBlackLower: station.fore.blackLower,
+          foreRedMid: station.fore.redMid
+        };
+      }
+
+      function gradeStation(station, answers, cumulativeBeforeM, options = {}) {
+        const expected = expectedValues(station);
+        const settings = state.settings;
+        const details = {};
+        const values = {};
+        const issues = [];
+
+        Object.keys(expected).forEach(key => {
+          const parsed = parseReading(answers[key]);
+          if (!parsed.present) {
+            details[key] = { present: false, ok: false, expected: expected[key], actual: null, diff: null };
+            issues.push({ kind: 'missing', key, message: OBS_LABELS[key] + '未填入' });
+            return;
+          }
+          if (!parsed.valid) {
+            details[key] = { present: true, ok: false, expected: expected[key], actual: null, diff: null };
+            issues.push({ kind: 'invalid', key, message: OBS_LABELS[key] + '格式无效' });
+            return;
+          }
+          const actual = parsed.mm;
+          const diff = actual - expected[key];
+          const ok = Math.abs(diff) <= settings.readToleranceMm;
+          details[key] = { present: true, ok, expected: expected[key], actual, diff };
+          values[key] = actual;
+          if (!ok && !options.live) {
+            issues.push({
+              kind: 'reading',
+              key,
+              message: OBS_LABELS[key] + '差 ' + signed(diff) + 'mm，限 ±' + settings.readToleranceMm + 'mm'
+            });
+          }
+        });
+
+        const calc = computeFromValues(values, station, cumulativeBeforeM);
+        addLimitIssue(calc.backDistanceM, value => value > 0 && value <= settings.sightMaxM, '后视距 ' + fmtM(calc.backDistanceM) + '，限 ≤' + settings.sightMaxM + 'm');
+        addLimitIssue(calc.foreDistanceM, value => value > 0 && value <= settings.sightMaxM, '前视距 ' + fmtM(calc.foreDistanceM) + '，限 ≤' + settings.sightMaxM + 'm');
+        addLimitIssue(calc.sightDiffM, value => Math.abs(value) <= settings.sightDiffMaxM, '前后视距差 ' + signedM(calc.sightDiffM) + '，限 ±' + settings.sightDiffMaxM + 'm');
+        addLimitIssue(calc.cumulativeSightDiffM, value => Math.abs(value) <= settings.cumulativeSightDiffMaxM, '累计视距差 ' + signedM(calc.cumulativeSightDiffM) + '，限 ±' + settings.cumulativeSightDiffMaxM + 'm');
+        addLimitIssue(calc.backRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, '后尺红黑面差 ' + signed(calc.backRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
+        addLimitIssue(calc.foreRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, '前尺红黑面差 ' + signed(calc.foreRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
+        addLimitIssue(calc.heightDiscrepancyMm, value => Math.abs(value) <= settings.heightDiffMm, '高差辅差 ' + signed(calc.heightDiscrepancyMm) + 'mm，限 ±' + settings.heightDiffMm + 'mm');
+
+        // 手簿计算格：标准答案按真实尺面（与读数对错无关）推算，核对手算是否正确
+        const idealCalc = computeFromValues(expected, station, station.cumulativeBeforeM);
+        const derivedSpecs = getDerivedFieldSpecs(idealCalc, settings);
+        derivedSpecs.forEach(spec => {
+          const parsed = parseDecimalSigned(answers[spec.key]);
+          if (!parsed.present) {
+            details[spec.key] = { present: false, ok: false, expected: spec.expected, actual: null, diff: null };
+            issues.push({ kind: 'missing', key: spec.key, message: OBS_LABELS[spec.key] + '未填入' });
+            return;
+          }
+          if (!parsed.valid || spec.expected == null) {
+            details[spec.key] = { present: true, ok: false, expected: spec.expected, actual: null, diff: null };
+            issues.push({ kind: 'invalid', key: spec.key, message: OBS_LABELS[spec.key] + '格式无效' });
+            return;
+          }
+          const diff = parsed.value - spec.expected;
+          const ok = Math.abs(diff) <= spec.tolerance;
+          details[spec.key] = { present: true, ok, expected: spec.expected, actual: parsed.value, diff };
+          if (!ok && !options.live) {
+            issues.push({ kind: 'derived', key: spec.key, message: derivedIssueText(spec, diff) });
+          }
+        });
+
+        const blockingIssues = issues.filter(issue => issue.kind !== 'missing' || !options.live);
+        return {
+          stationId: station.id,
+          passed: blockingIssues.length === 0
+            && Object.keys(expected).every(key => details[key].present && details[key].ok)
+            && derivedSpecs.every(spec => details[spec.key].present && details[spec.key].ok),
+          details,
+          calc,
+          issues
+        };
+
+        function addLimitIssue(value, predicate, message) {
+          if (value == null || !Number.isFinite(value)) return;
+          if (predicate(value)) return;
+          if (!options.live) issues.push({ kind: 'limit', message });
+        }
+      }
+
+      function computeFromValues(values, station, cumulativeBeforeM) {
+        const out = {
+          backDistanceM: null,
+          foreDistanceM: null,
+          sightDiffM: null,
+          cumulativeSightDiffM: null,
+          backRedBlackDiffMm: null,
+          foreRedBlackDiffMm: null,
+          blackHeightDiffMm: null,
+          redHeightDiffMm: null,
+          rawRedHeightDiffMm: null,
+          heightDiscrepancyMm: null
+        };
+
+        if (hasValues(values, ['backBlackUpper', 'backBlackLower'])) {
+          out.backDistanceM = (values.backBlackUpper - values.backBlackLower) / 10;
+        }
+        if (hasValues(values, ['foreBlackUpper', 'foreBlackLower'])) {
+          out.foreDistanceM = (values.foreBlackUpper - values.foreBlackLower) / 10;
+        }
+        if (out.backDistanceM != null && out.foreDistanceM != null) {
+          out.sightDiffM = out.backDistanceM - out.foreDistanceM;
+          out.cumulativeSightDiffM = (Number(cumulativeBeforeM) || 0) + out.sightDiffM;
+        }
+        if (hasValues(values, ['backRedMid', 'backBlackMid'])) {
+          out.backRedBlackDiffMm = values.backRedMid - values.backBlackMid - station.back.constant;
+        }
+        if (hasValues(values, ['foreRedMid', 'foreBlackMid'])) {
+          out.foreRedBlackDiffMm = values.foreRedMid - values.foreBlackMid - station.fore.constant;
+        }
+        if (hasValues(values, ['backBlackMid', 'foreBlackMid'])) {
+          out.blackHeightDiffMm = values.backBlackMid - values.foreBlackMid;
+        }
+        if (hasValues(values, ['backRedMid', 'foreRedMid'])) {
+          out.redHeightDiffMm = values.backRedMid - values.foreRedMid - (station.back.constant - station.fore.constant);
+          out.rawRedHeightDiffMm = values.backRedMid - values.foreRedMid;
+        }
+        if (out.blackHeightDiffMm != null && out.redHeightDiffMm != null) {
+          out.heightDiscrepancyMm = out.blackHeightDiffMm - out.redHeightDiffMm;
+        }
+        return out;
+      }
+
+      // 手簿"计算格"的标准答案规格：expected 取自真实尺面推算值，
+      // tolerance 按读数误差和复核限差放宽，避免只因末位取舍差异误判。
+      function getDerivedFieldSpecs(idealCalc, settings) {
+        const activeSettings = settings || DEFAULT_SETTINGS;
+        const back9 = idealCalc.backRedBlackDiffMm != null ? -idealCalc.backRedBlackDiffMm : null;
+        const front10 = idealCalc.foreRedBlackDiffMm != null ? -idealCalc.foreRedBlackDiffMm : null;
+        const check13 = (idealCalc.foreRedBlackDiffMm != null && idealCalc.backRedBlackDiffMm != null)
+          ? idealCalc.foreRedBlackDiffMm - idealCalc.backRedBlackDiffMm
+          : null;
+        const blackHeightDiffM = idealCalc.blackHeightDiffMm != null ? idealCalc.blackHeightDiffMm / 1000 : null;
+        const rawRedHeightDiffM = idealCalc.rawRedHeightDiffMm != null ? idealCalc.rawRedHeightDiffMm / 1000 : null;
+        const mean14 = (idealCalc.blackHeightDiffMm != null && idealCalc.redHeightDiffMm != null)
+          ? (idealCalc.blackHeightDiffMm + idealCalc.redHeightDiffMm) / 2000
+          : null;
+        const readTol = Math.max(0, Number(activeSettings.readToleranceMm) || 0);
+        const distanceTolM = Math.max(0.1, readTol * 0.2);
+        const redBlackTolMm = Math.max(0.5, Number(activeSettings.redBlackDiffMm) || 0);
+        const heightTolM = Math.max(0.001, Math.max(readTol * 2, Number(activeSettings.heightDiffMm) || 0) / 1000);
+        const sightDiffTolM = Math.max(0.05, Number(activeSettings.sightDiffMaxM) || 0);
+        const cumulativeTolM = Math.max(0.05, Number(activeSettings.cumulativeSightDiffMaxM) || 0);
+        return [
+          { key: 'back9', expected: back9, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
+          { key: 'front10', expected: front10, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
+          { key: 'backDist', expected: idealCalc.backDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
+          { key: 'foreDist', expected: idealCalc.foreDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
+          { key: 'blackHeightDiff', expected: blackHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
+          { key: 'rawRedHeightDiff', expected: rawRedHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
+          { key: 'check13', expected: check13, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
+          { key: 'mean14', expected: mean14, tolerance: heightTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(4), placeholder: '0.0000' },
+          { key: 'sightDiff', expected: idealCalc.sightDiffM, tolerance: sightDiffTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' },
+          { key: 'cumulativeSightDiff', expected: idealCalc.cumulativeSightDiffM, tolerance: cumulativeTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' }
+        ];
+      }
+
+      function derivedIssueText(spec, diff) {
+        return OBS_LABELS[spec.key] + '差 ' + formatDerivedDiff(diff, spec.unit) + '，限 ±' + formatTolerance(spec.tolerance, spec.unit);
+      }
+
+      function formatDerivedDiff(value, unit) {
+        if (unit === 'm') return (value > 0 ? '+' : '') + Number(value).toFixed(3) + 'm';
+        return signed(value) + 'mm';
+      }
+
+      function formatTolerance(value, unit) {
+        if (unit === 'm') return Number(value).toFixed(value >= 1 ? 1 : 3) + 'm';
+        return Number(value).toFixed(value % 1 ? 1 : 0) + 'mm';
+      }
+
+      function parseReading(value) {
+        const raw = String(value == null ? '' : value).trim();
+        if (!raw) return { present: false, valid: false, mm: null };
+        const normalized = raw.replace(/\s+/g, '');
+        const number = Number(normalized);
+        if (!Number.isFinite(number) || number < 0 || number !== Math.round(number)) {
+          return { present: true, valid: false, mm: null };
+        }
+        return { present: true, valid: true, mm: Math.round(number) };
+      }
+
+      function parseDecimalSigned(value) {
+        const raw = String(value == null ? '' : value).trim();
+        if (!raw) return { present: false, valid: false, value: null };
+        const normalized = raw.replace(/，/g, '.').replace(/\s+/g, '');
+        const number = Number(normalized);
+        if (!Number.isFinite(number)) return { present: true, valid: false, value: null };
+        return { present: true, valid: true, value: number };
+      }
+
+      function hasValues(values, keys) {
+        return keys.every(key => Number.isFinite(values[key]));
+      }
+
+      function hasAnyAnswer(answers) {
+        return Object.values(answers || {}).some(value => String(value || '').trim());
+      }
+
+      function formatM(mm) {
+        return String(Math.round(mm));
+      }
+
+      function fmtM(value) {
+        return value == null || !Number.isFinite(value) ? '待填' : Number(value).toFixed(1) + 'm';
+      }
+
+      function signedM(value) {
+        if (value == null || !Number.isFinite(value)) return '待填';
+        return (value > 0 ? '+' : '') + Number(value).toFixed(1) + 'm';
+      }
+
+      function signed(value) {
+        if (value == null || !Number.isFinite(value)) return '待填';
+        return (value > 0 ? '+' : '') + Math.round(value);
+      }
+
+      function formatCalcValue(value, unit) {
+        if (value == null || !Number.isFinite(value)) return '待填';
+        if (unit === 'm') return Number(value).toFixed(1) + 'm';
+        return signed(value) + 'mm';
+      }
+
+      function formatDate(iso) {
+        const date = new Date(iso);
+        if (!Number.isFinite(date.getTime())) return '';
+        const pad = value => String(value).padStart(2, '0');
+        return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+      }
+
+      function issueText(grade) {
+        const issue = grade.issues.find(item => item.kind !== 'missing') || grade.issues[0];
+        if (!issue) return '全部通过';
+        return issue.message;
+      }
+
+      function randomInt(min, max) {
+        const lo = Math.ceil(min);
+        const hi = Math.floor(max);
+        if (hi <= lo) return lo;
+        return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function clone(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function hashString(value) {
+        return String(value).split('').reduce((hash, char) => {
+          return ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+        }, 0);
+      }
+
+      function uniqueId(prefix) {
+        return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+    })();
+  </script>
+</body>
+</html>
