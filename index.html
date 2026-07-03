@@ -91,7 +91,7 @@
       position: absolute;
       inset: -22px;
       opacity: 0;
-      background-image: url("assets/backgrounds/nanjing-ground-1.png");
+      background-image: url("assets/backgrounds/hangzhou-broken-bridge.png");
       background-position: center center;
       background-size: cover;
       filter: blur(8px) brightness(0.76) saturate(0.96);
@@ -551,7 +551,7 @@
       position: absolute;
       inset: -3%;
       opacity: 0;
-      background-image: url("assets/backgrounds/nanjing-ground-1.png");
+      background-image: url("assets/backgrounds/hangzhou-broken-bridge.png");
       background-size: cover;
       background-position: center center;
       filter: blur(1.2px) brightness(0.84) saturate(0.98);
@@ -990,7 +990,7 @@
 
     .preset-actions {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 10px;
     }
@@ -1039,17 +1039,30 @@
       line-height: 1.35;
     }
 
-    .history-item .small-row {
+    .history-footer {
       display: flex;
-      gap: 6px;
-      align-items: center;
+      gap: 10px;
+      align-items: flex-end;
       justify-content: space-between;
       margin-top: 8px;
     }
 
+    .history-status {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-actions {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
     .history-item button {
       min-height: 30px;
-      padding: 0 9px;
+      min-width: 76px;
+      padding: 0 12px;
       font-size: 12px;
     }
 
@@ -1170,6 +1183,19 @@
         grid-template-columns: 1fr;
       }
 
+      .history-footer {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .history-actions {
+        width: 100%;
+      }
+
+      .history-actions button {
+        flex: 1;
+      }
+
     }
 </style>
 </head>
@@ -1251,6 +1277,7 @@
             <button data-action="nextStation" id="nextStationBtn" class="hidden">下一站</button>
             <button data-action="submitTest" class="primary hidden" id="submitTestBtn">交卷</button>
             <button data-action="startTest" id="startTestBtn" class="hidden">重新测验</button>
+            <button data-action="exitHistoryView" id="exitHistoryBtn" class="hidden">退出回放</button>
           </div>
         </div>
 
@@ -1318,8 +1345,7 @@
           </div>
           <div class="panel-body">
             <div class="preset-actions" id="presetActions">
-              <button data-action="applyPreset" data-preset="secondOptical">二等水准（光学）</button>
-              <button data-action="applyPreset" data-preset="secondDigital">二等水准（数字）</button>
+              <button data-action="applyPreset" data-preset="thirdMiddle">三等水准（中丝读数法）</button>
               <button data-action="applyPreset" data-preset="fourth">四等水准</button>
             </div>
             <div class="settings-grid">
@@ -1330,8 +1356,6 @@
               <label class="setting"><span data-setting-label="cumulativeSightDiffMaxM">累计距差 m</span><input type="number" data-setting="cumulativeSightDiffMaxM" min="0" step="0.5"></label>
               <label class="setting"><span data-setting-label="redBlackDiffMm">红黑面读数差 mm</span><input type="number" data-setting="redBlackDiffMm" min="0" step="0.1"></label>
               <label class="setting"><span data-setting-label="heightDiffMm">红黑面高差之差 mm</span><input type="number" data-setting="heightDiffMm" min="0" step="0.1"></label>
-              <label class="setting" data-standard-visible="second"><span data-setting-label="intermittentPointDiffMm">间歇点检测高差差 mm</span><input type="number" data-setting="intermittentPointDiffMm" min="0" step="0.1"></label>
-              <label class="setting"><span data-setting-label="readToleranceMm">读数判定误差 mm</span><input type="number" data-setting="readToleranceMm" min="0" step="0.1"></label>
               <label class="setting"><span data-setting-label="testCount">测验站数</span><input type="number" data-setting="testCount" min="1" max="30" step="1"></label>
             </div>
             <div class="side-actions">
@@ -1357,66 +1381,59 @@
     </section>
   </main>
 
+  <script src="assets/vendor/jszip.min.js"></script>
+  <script src="assets/templates/fourth-level-handbook.base64.js"></script>
   <script>
     (() => {
       const STORE_KEY = 'fourth-level-reading-trainer-v1';
+      const HANDBOOK_TEMPLATE_URL = 'assets/templates/fourth-level-handbook.docx';
+      const OBSERVATION_TABLE_ROWS = 28;
+      const STATIONS_PER_HANDBOOK_TABLE = 6;
+      const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+      const XML_NS = 'http://www.w3.org/XML/1998/namespace';
       const FOURTH_LEVEL_SETTINGS = {
         rodAConstantMm: 4687,
         rodBConstantMm: 4787,
-        readToleranceMm: 1,
         sightMaxM: 100,
         sightDiffMaxM: 5,
         cumulativeSightDiffMaxM: 10,
         redBlackDiffMm: 3,
         heightDiffMm: 5,
-        intermittentPointDiffMm: 1,
         testCount: 12
       };
 
-      const SECOND_LEVEL_OPTICAL_SETTINGS = {
+      const THIRD_LEVEL_MIDDLE_SETTINGS = {
         rodAConstantMm: 4687,
         rodBConstantMm: 4787,
-        readToleranceMm: 0.5,
-        sightMaxM: 50,
-        sightDiffMaxM: 1,
-        cumulativeSightDiffMaxM: 3,
-        redBlackDiffMm: 0.4,
-        heightDiffMm: 0.6,
-        intermittentPointDiffMm: 1,
-        testCount: 12
-      };
-
-      const SECOND_LEVEL_DIGITAL_SETTINGS = {
-        ...SECOND_LEVEL_OPTICAL_SETTINGS,
-        sightDiffMaxM: 1.5,
+        sightMaxM: 75,
+        sightDiffMaxM: 3,
         cumulativeSightDiffMaxM: 6,
+        redBlackDiffMm: 2,
+        heightDiffMm: 3,
         testCount: 12
       };
 
       const DEFAULT_SETTINGS = { ...FOURTH_LEVEL_SETTINGS };
 
       const SETTING_PRESETS = {
-        secondOptical: { label: '二等水准（光学）', level: 'second', instrument: '光学', values: SECOND_LEVEL_OPTICAL_SETTINGS },
-        secondDigital: { label: '二等水准（数字）', level: 'second', instrument: '数字', values: SECOND_LEVEL_DIGITAL_SETTINGS },
-        fourth: { label: '四等水准', values: FOURTH_LEVEL_SETTINGS }
+        thirdMiddle: { label: '三等水准（中丝读数法）', level: 'third', method: '中丝读数法', values: THIRD_LEVEL_MIDDLE_SETTINGS },
+        fourth: { label: '四等水准', level: 'fourth', method: '中丝读数法', values: FOURTH_LEVEL_SETTINGS }
       };
 
       const STANDARD_TERMS = {
-        second: {
-          level: 'second',
-          redBlackSetting: '基辅分划读数差 mm',
-          heightSetting: '基辅分划高差差 mm',
-          intermittentSetting: '间歇点检测高差差 mm',
+        third: {
+          level: 'third',
+          redBlackSetting: '基辅分划（黑红面）读数差 mm',
+          heightSetting: '基辅分划（黑红面）高差差 mm',
           backReadDiff: '后尺基辅分划读数差',
           foreReadDiff: '前尺基辅分划读数差',
-          heightDiff: '基辅分划高差差',
-          reviewHint: '基辅分划读数差、基辅分划高差差'
+          heightDiff: '基辅分划（黑红面）高差差',
+          reviewHint: '基辅分划（黑红面）读数差、基辅分划（黑红面）高差差'
         },
         fourth: {
           level: 'fourth',
           redBlackSetting: '红黑面读数差 mm',
           heightSetting: '红黑面高差之差 mm',
-          intermittentSetting: '间歇点检测高差差 mm',
           backReadDiff: '后尺红黑面读数差',
           foreReadDiff: '前尺红黑面读数差',
           heightDiff: '红黑面高差之差',
@@ -1439,11 +1456,12 @@
       };
 
       const STAFF_BACKGROUNDS = [
-        { src: 'assets/backgrounds/nanjing-ground-1.png', position: 'center center' },
-        { src: 'assets/backgrounds/nanjing-ground-2.png', position: 'center center' },
-        { src: 'assets/backgrounds/nanjing-ground-3.png', position: 'center center' },
-        { src: 'assets/backgrounds/nanjing-ground-4.png', position: 'center center' },
-        { src: 'assets/backgrounds/nanjing-ground-5.png', position: 'center center' }
+        { src: 'assets/backgrounds/hangzhou-broken-bridge.png', position: 'center center' },
+        { src: 'assets/backgrounds/hangzhou-gongchen-bridge.png', position: 'center center' },
+        { src: 'assets/backgrounds/hangzhou-qiantang-river.png', position: 'center center' },
+        { src: 'assets/backgrounds/hangzhou-xixi-wetland.png', position: 'center center' },
+        { src: 'assets/backgrounds/hangzhou-xianghu-walkway.png', position: 'center center' },
+        { src: 'assets/backgrounds/hangzhou-liangzhu-heritage.png', position: 'center center' }
       ];
 
       const OBS_LABELS = {
@@ -1504,7 +1522,8 @@
         prevStationBtn: document.getElementById('prevStationBtn'),
         nextStationBtn: document.getElementById('nextStationBtn'),
         submitTestBtn: document.getElementById('submitTestBtn'),
-        startTestBtn: document.getElementById('startTestBtn')
+        startTestBtn: document.getElementById('startTestBtn'),
+        exitHistoryBtn: document.getElementById('exitHistoryBtn')
       };
 
       const saved = loadStore();
@@ -1528,7 +1547,8 @@
         testIndex: Number.isInteger(saved.testIndex) ? saved.testIndex : 0,
         testSubmitted: Boolean(saved.testSubmitted),
         testGrade: saved.testGrade && Array.isArray(saved.testGrade.stationGrades) ? saved.testGrade : null,
-        testRecords: Array.isArray(saved.testRecords) ? saved.testRecords.slice(-60) : []
+        testRecords: Array.isArray(saved.testRecords) ? saved.testRecords.slice(-60) : [],
+        historyView: null
       };
 
       const sceneBackground = {
@@ -1538,16 +1558,10 @@
         position: ''
       };
 
-      if ((!saved.standardKey || saved.standardKey === 'second') && state.standardKey === 'secondOptical') {
-        const legacySecond = Number(state.settings.sightMaxM) === 50
-          && Number(state.settings.sightDiffMaxM) === 1
-          && Number(state.settings.cumulativeSightDiffMaxM) === 3
-          && Number(state.settings.redBlackDiffMm) === 1
-          && Number(state.settings.heightDiffMm) === 1;
-        if (legacySecond) {
-          const testCount = state.settings.testCount;
-          Object.assign(state.settings, SECOND_LEVEL_OPTICAL_SETTINGS, { testCount });
-        }
+      if (['second', 'secondOptical', 'secondDigital'].includes(saved.standardKey)) {
+        const testCount = state.settings.testCount;
+        Object.assign(state.settings, THIRD_LEVEL_MIDDLE_SETTINGS, { testCount });
+        state.standardKey = 'thirdMiddle';
       }
 
       if (!state.practiceStation) {
@@ -1574,21 +1588,25 @@
 
       function normalizeSettings(source) {
         const merged = { ...DEFAULT_SETTINGS, ...(source || {}) };
+        const normalized = {};
         Object.keys(DEFAULT_SETTINGS).forEach(key => {
           const fallback = DEFAULT_SETTINGS[key];
           const value = Number(merged[key]);
-          merged[key] = Number.isFinite(value) ? value : fallback;
+          normalized[key] = Number.isFinite(value) ? value : fallback;
         });
-        merged.testCount = clamp(Math.round(merged.testCount), 1, 30);
-        return merged;
+        normalized.testCount = clamp(Math.round(normalized.testCount), 1, 30);
+        return normalized;
       }
 
       function normalizeStandardKey(key, activeSettings) {
-        if (key === 'second') return 'secondOptical';
+        if (key === 'second' || key === 'secondOptical' || key === 'secondDigital' || key === 'third') return 'thirdMiddle';
         if (SETTING_PRESETS[key]) return key;
         const settingsSource = activeSettings || {};
+        if (Number(settingsSource.redBlackDiffMm) === 2 && Number(settingsSource.heightDiffMm) === 3) {
+          return 'thirdMiddle';
+        }
         if (Number(settingsSource.sightMaxM) === 50) {
-          return Number(settingsSource.cumulativeSightDiffMaxM) === 6 ? 'secondDigital' : 'secondOptical';
+          return 'thirdMiddle';
         }
         return 'fourth';
       }
@@ -1598,7 +1616,11 @@
       }
 
       function currentStandardTerms() {
-        const meta = currentStandardMeta();
+        return standardTermsForKey(state.standardKey);
+      }
+
+      function standardTermsForKey(key) {
+        const meta = SETTING_PRESETS[key] || SETTING_PRESETS.fourth;
         return STANDARD_TERMS[meta.level || 'fourth'] || STANDARD_TERMS.fourth;
       }
 
@@ -1652,6 +1674,18 @@
             return;
           }
 
+          const historyButton = event.target.closest('[data-history-view]');
+          if (historyButton) {
+            loadHistoryView(historyButton.dataset.historyKind, historyButton.dataset.historyView);
+            return;
+          }
+
+          const exportTestButton = event.target.closest('[data-export-test]');
+          if (exportTestButton) {
+            exportTestRecordDocx(exportTestButton.dataset.exportTest, exportTestButton);
+            return;
+          }
+
           const mistakeButton = event.target.closest('[data-load-mistake]');
           if (mistakeButton) {
             loadMistake(mistakeButton.dataset.loadMistake);
@@ -1663,7 +1697,7 @@
           if (!input) return;
           const shot = input.dataset.shot;
           if (shot && shot !== state.currentShot) {
-            setCurrentShot(shot);
+            setCurrentShot(shot, input);
           }
         });
 
@@ -1699,11 +1733,13 @@
         if (action === 'saveSettings') saveSettings();
         if (action === 'resetRecords') resetRecords();
         if (action === 'exportRecords') exportRecords();
+        if (action === 'exitHistoryView') exitHistoryView();
         if (action === 'applyPreset' && actionButton) applyPreset(actionButton.dataset.preset);
       }
 
       function setMode(mode) {
         if (mode !== 'practice' && mode !== 'test') return;
+        state.historyView = null;
         state.mode = mode;
         state.checksVisible = false;
         if (mode === 'test' && !state.testStations.length) createTest(false);
@@ -1711,7 +1747,7 @@
         render();
       }
 
-      function setCurrentShot(shotId) {
+      function setCurrentShot(shotId, focusInput) {
         if (!canOpenShot(shotId)) {
           const firstBlocked = firstIncompleteShotId(activeAnswers(activeStation())) || 'backBlack';
           const shot = SHOTS.find(item => item.id === firstBlocked) || SHOTS[0];
@@ -1724,7 +1760,7 @@
         state.currentShot = shotId;
         state.flowNotice = '';
         persist();
-        render();
+        renderWithReadingFocus(focusInput);
       }
 
       function moveShot(delta) {
@@ -1743,6 +1779,7 @@
       }
 
       function canOpenShot(shotId) {
+        if (state.historyView) return SHOTS.some(shot => shot.id === shotId);
         const index = SHOTS.findIndex(shot => shot.id === shotId);
         if (index <= 0) return index === 0;
         const answers = activeAnswers(activeStation());
@@ -1754,10 +1791,7 @@
 
       function isShotComplete(shotId, answers) {
         const keys = SHOT_REQUIREMENTS[shotId] || [];
-        return keys.every(key => {
-          const parsed = parseReading(answers && answers[key]);
-          return parsed.present && parsed.valid && parsed.mm >= 100;
-        });
+        return keys.every(key => isStaffReadingComplete(answers && answers[key]));
       }
 
       function firstIncompleteShotId(answers) {
@@ -1770,6 +1804,13 @@
       }
 
       function moveTestStation(delta) {
+        if (state.historyView && state.historyView.kind === 'test') {
+          const stations = historyStations();
+          state.historyView.stationIndex = clamp((state.historyView.stationIndex || 0) + delta, 0, Math.max(0, stations.length - 1));
+          state.currentShot = 'backBlack';
+          render();
+          return;
+        }
         if (state.mode !== 'test') return;
         state.testIndex = clamp(state.testIndex + delta, 0, state.testStations.length - 1);
         state.currentShot = 'backBlack';
@@ -1779,6 +1820,7 @@
       }
 
       function newPracticeStation() {
+        state.historyView = null;
         const number = state.practiceRecords.length + 1;
         state.practiceStation = createStation(number, 0);
         state.practiceAnswers = {};
@@ -1792,6 +1834,7 @@
       }
 
       function createTest(shouldRender) {
+        state.historyView = null;
         const stations = [];
         let cumulative = 0;
         for (let i = 0; i < state.settings.testCount; i += 1) {
@@ -1826,7 +1869,8 @@
           stationNumber: state.practiceStation.number,
           correct: grade.passed,
           score: grade.passed ? 100 : 0,
-          issueText: issueText(grade)
+          issueText: issueText(grade),
+          snapshot: practiceSnapshot(state.practiceStation, state.practiceAnswers)
         };
         state.practiceRecords.push(record);
         state.practiceRecords = state.practiceRecords.slice(-120);
@@ -1878,6 +1922,7 @@
           accuracy,
           stationGrades
         };
+        const snapshot = testSnapshot();
         state.testRecords.push({
           id: state.testGrade.id,
           type: '测验',
@@ -1886,7 +1931,8 @@
           answered,
           correct,
           wrong: total - correct,
-          accuracy
+          accuracy,
+          snapshot
         });
         state.testRecords = state.testRecords.slice(-60);
         persist();
@@ -1899,15 +1945,40 @@
           at: new Date().toISOString(),
           station: clone(station),
           answers: clone(answers),
+          settings: clone(state.settings),
+          standardKey: state.standardKey,
+          currentShot: state.currentShot,
           issueText: issueText(grade)
         });
         state.mistakeStations = state.mistakeStations.slice(0, 60);
+      }
+
+      function practiceSnapshot(station, answers) {
+        return {
+          station: clone(station),
+          answers: clone(answers || {}),
+          settings: clone(state.settings),
+          standardKey: state.standardKey,
+          currentShot: state.currentShot
+        };
+      }
+
+      function testSnapshot() {
+        return {
+          stations: clone(state.testStations),
+          answersByStationId: clone(state.testAnswers || {}),
+          settings: clone(state.settings),
+          standardKey: state.standardKey,
+          testIndex: state.testIndex,
+          currentShot: state.currentShot
+        };
       }
 
       function loadMistake(id) {
         const item = state.mistakeStations.find(entry => entry.id === id);
         if (!item) return;
         state.mode = 'practice';
+        state.historyView = null;
         state.practiceStation = clone(item.station);
         state.practiceAnswers = {};
         state.practiceGrade = null;
@@ -1918,7 +1989,63 @@
         render();
       }
 
+      function loadHistoryView(kind, id) {
+        const entry = historyEntry(kind, id);
+        const snapshot = snapshotForHistory(kind, entry);
+        if (!snapshot) {
+          window.alert('这条旧记录没有保存完整快照，无法回放。');
+          return;
+        }
+        state.historyView = {
+          kind,
+          recordId: id,
+          stationIndex: snapshot.testIndex || 0,
+          summary: entry ? {
+            accuracy: entry.accuracy,
+            correct: entry.correct,
+            total: entry.total,
+            at: entry.at
+          } : {},
+          snapshot
+        };
+        state.mode = kind === 'test' ? 'test' : 'practice';
+        state.currentShot = snapshot.currentShot || 'backBlack';
+        state.checksVisible = true;
+        state.practiceGrade = null;
+        state.practiceReveal = false;
+        render();
+      }
+
+      function exitHistoryView() {
+        state.historyView = null;
+        state.currentShot = 'backBlack';
+        render();
+      }
+
+      function historyEntry(kind, id) {
+        if (kind === 'test') return state.testRecords.find(record => record.id === id);
+        if (kind === 'practice') return state.practiceRecords.find(record => record.id === id);
+        if (kind === 'mistake') return state.mistakeStations.find(record => record.id === id);
+        return null;
+      }
+
+      function snapshotForHistory(kind, entry) {
+        if (!entry) return null;
+        if (entry.snapshot) return clone(entry.snapshot);
+        if (kind === 'mistake' && entry.station) {
+          return {
+            station: clone(entry.station),
+            answers: clone(entry.answers || {}),
+            settings: clone(entry.settings || state.settings),
+            standardKey: entry.standardKey || state.standardKey,
+            currentShot: entry.currentShot || 'backBlack'
+          };
+        }
+        return null;
+      }
+
       function resetSettings() {
+        state.historyView = null;
         Object.assign(state.settings, DEFAULT_SETTINGS);
         state.standardKey = 'fourth';
         syncSettingsInputs();
@@ -1941,6 +2068,7 @@
       function applyPreset(name) {
         const preset = SETTING_PRESETS[name];
         if (!preset) return;
+        state.historyView = null;
         Object.assign(state.settings, preset.values);
         state.standardKey = name;
         syncSettingsInputs();
@@ -1956,6 +2084,7 @@
       }
 
       function resetRecords() {
+        state.historyView = null;
         state.practiceRecords = [];
         state.testRecords = [];
         state.mistakeStations = [];
@@ -2002,6 +2131,332 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
+      async function exportTestRecordDocx(id, button) {
+        const record = state.testRecords.find(item => item.id === id);
+        const snapshot = snapshotForHistory('test', record);
+        if (!snapshot) {
+          window.alert('这条旧测验记录没有保存完整快照，无法导出 Word。');
+          return;
+        }
+        if (!window.JSZip) {
+          window.alert('Word 导出组件未加载，请刷新页面后重试。');
+          return;
+        }
+
+        const originalText = button ? button.textContent : '';
+        if (button) {
+          button.disabled = true;
+          button.textContent = '导出中';
+        }
+        try {
+          const templateBuffer = await loadHandbookTemplate();
+          const zip = await window.JSZip.loadAsync(templateBuffer);
+          const documentFile = zip.file('word/document.xml');
+          if (!documentFile) throw new Error('模板缺少 word/document.xml');
+          const xmlText = await documentFile.async('string');
+          const xmlDoc = new DOMParser().parseFromString(xmlText, 'application/xml');
+          if (xmlDoc.getElementsByTagName('parsererror').length) {
+            throw new Error('模板 XML 解析失败');
+          }
+          fillHandbookDocument(xmlDoc, snapshot);
+          stripOptionalHandbookAttributes(xmlDoc);
+          zip.file('word/document.xml', new XMLSerializer().serializeToString(xmlDoc));
+          const blob = await zip.generateAsync({ type: 'blob' });
+          downloadBlob(blob, '四等水准观测记录表-' + safeFileDate(record.at) + '.docx');
+        } catch (error) {
+          console.error(error);
+          window.alert('导出 Word 失败：' + (error && error.message ? error.message : error));
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = originalText || '导出Word';
+          }
+        }
+      }
+
+      async function loadHandbookTemplate() {
+        if (window.HANDBOOK_TEMPLATE_BASE64) {
+          return base64ToArrayBuffer(window.HANDBOOK_TEMPLATE_BASE64);
+        }
+        const response = await fetch(HANDBOOK_TEMPLATE_URL);
+        if (!response.ok) throw new Error('模板文件读取失败');
+        return response.arrayBuffer();
+      }
+
+      function fillHandbookDocument(xmlDoc, snapshot) {
+        const stations = Array.isArray(snapshot.stations) ? snapshot.stations : [];
+        const pagesNeeded = Math.max(1, Math.ceil(stations.length / STATIONS_PER_HANDBOOK_TABLE));
+        const blocks = observationTableBlocks(xmlDoc);
+        if (pagesNeeded > blocks.length) {
+          throw new Error('模板最多可导出 ' + (blocks.length * STATIONS_PER_HANDBOOK_TABLE) + ' 个测站');
+        }
+        trimHandbookBlocks(blocks, pagesNeeded);
+        applyHandbookPageBreaks(blocks.slice(0, pagesNeeded));
+        removeTrailingHandbookContent(blocks[Math.max(0, pagesNeeded - 1)]);
+        const tables = blocks.slice(0, pagesNeeded).map(block => block.table);
+        clearHandbookTables(tables);
+        stations.forEach((station, index) => {
+          const table = tables[Math.floor(index / STATIONS_PER_HANDBOOK_TABLE)];
+          if (!table) return;
+          const rowBase = 4 + (index % STATIONS_PER_HANDBOOK_TABLE) * 4;
+          const rows = childElements(table, 'tr');
+          fillHandbookStationRows(rows.slice(rowBase, rowBase + 4), station, snapshot.answersByStationId && snapshot.answersByStationId[station.id]);
+        });
+      }
+
+      function stripOptionalHandbookAttributes(xmlDoc) {
+        const allowedNamespaces = new Set([W_NS, 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', XML_NS]);
+        [...xmlDoc.getElementsByTagName('*')].forEach(element => {
+          [...element.attributes].forEach(attribute => {
+            if (attribute.namespaceURI && !allowedNamespaces.has(attribute.namespaceURI)) {
+              element.removeAttributeNode(attribute);
+            }
+          });
+        });
+      }
+
+      function removeTrailingHandbookContent(lastBlock) {
+        if (!lastBlock || !lastBlock.end || !lastBlock.end.parentNode) return;
+        const parent = lastBlock.end.parentNode;
+        let node = lastBlock.end.nextSibling;
+        while (node) {
+          const next = node.nextSibling;
+          if (!(node.nodeType === 1 && node.localName === 'sectPr')) {
+            parent.removeChild(node);
+          }
+          node = next;
+        }
+      }
+
+      function applyHandbookPageBreaks(blocks) {
+        blocks.forEach((block, index) => {
+          if (index < blocks.length - 1) {
+            const paragraph = block.end && block.end.localName === 'p' ? block.end : insertParagraphAfter(block.table);
+            setParagraphPageBreak(paragraph);
+          } else if (block.end && block.end.localName === 'p') {
+            removePageBreaks(block.end);
+          }
+        });
+      }
+
+      function insertParagraphAfter(node) {
+        const doc = node.ownerDocument;
+        const paragraph = doc.createElementNS(W_NS, 'w:p');
+        node.parentNode.insertBefore(paragraph, node.nextSibling);
+        return paragraph;
+      }
+
+      function setParagraphPageBreak(paragraph) {
+        const doc = paragraph.ownerDocument;
+        [...paragraph.childNodes].forEach(child => {
+          if (!(child.nodeType === 1 && child.localName === 'pPr')) paragraph.removeChild(child);
+        });
+        const run = doc.createElementNS(W_NS, 'w:r');
+        const br = doc.createElementNS(W_NS, 'w:br');
+        br.setAttributeNS(W_NS, 'w:type', 'page');
+        run.appendChild(br);
+        paragraph.appendChild(run);
+      }
+
+      function removePageBreaks(paragraph) {
+        [...paragraph.getElementsByTagNameNS(W_NS, 'br')].forEach(br => {
+          if (br.parentNode) br.parentNode.removeChild(br);
+        });
+      }
+
+      function observationTableBlocks(xmlDoc) {
+        const body = xmlDoc.getElementsByTagNameNS(W_NS, 'body')[0];
+        if (!body) return [];
+        return childElements(body).filter(isObservationTableXml).map(table => {
+          const previous = previousElement(table);
+          const next = nextElement(table);
+          return {
+            start: previous && previous.localName === 'p' && cellText(previous).includes('往测') ? previous : table,
+            table,
+            end: next && next.localName === 'p' && cellText(next).trim() === '' ? next : table
+          };
+        });
+      }
+
+      function trimHandbookBlocks(blocks, keepCount) {
+        blocks.slice(keepCount).forEach(block => {
+          const parent = block.start && block.start.parentNode;
+          if (!parent) return;
+          let node = block.start;
+          while (node) {
+            const next = node.nextSibling;
+            parent.removeChild(node);
+            if (node === block.end) break;
+            node = next;
+          }
+        });
+      }
+
+      function isObservationTableXml(table) {
+        const rows = childElements(table, 'tr');
+        if (rows.length !== OBSERVATION_TABLE_ROWS) return false;
+        return cellText(childElements(rows[0], 'tc')[0]).includes('测站编号');
+      }
+
+      function clearHandbookTables(tables) {
+        tables.forEach(table => {
+          const rows = childElements(table, 'tr');
+          for (let rowIndex = 4; rowIndex < rows.length; rowIndex += 1) {
+            childElements(rows[rowIndex], 'tc').forEach(cell => setCellText(cell, ''));
+          }
+          for (let stationIndex = 0; stationIndex < STATIONS_PER_HANDBOOK_TABLE; stationIndex += 1) {
+            const base = 4 + stationIndex * 4;
+            const rowsBlock = rows.slice(base, base + 4);
+            if (rowsBlock.length === 4) {
+              setCellText(childElements(rowsBlock[0], 'tc')[3], '后');
+              setCellText(childElements(rowsBlock[1], 'tc')[3], '前');
+              setCellText(childElements(rowsBlock[2], 'tc')[3], '后－前');
+            }
+          }
+        });
+      }
+
+      function fillHandbookStationRows(rows, station, answers = {}) {
+        if (!station || rows.length < 4) return;
+        const row0 = childElements(rows[0], 'tc');
+        const row1 = childElements(rows[1], 'tc');
+        const row2 = childElements(rows[2], 'tc');
+        const row3 = childElements(rows[3], 'tc');
+        const notes = answers.notes || '';
+
+        setCellText(row0[0], station.number || '');
+        setCellText(row0[1], formatHandbookReading(answers.backBlackUpper));
+        setCellText(row0[2], formatHandbookReading(answers.foreBlackUpper));
+        setCellText(row0[3], '后');
+        setCellText(row0[4], formatHandbookReading(answers.backBlackMid));
+        setCellText(row0[5], formatHandbookReading(answers.backRedMid));
+        setCellText(row0[6], handbookText(answers.back9));
+        setCellText(row0[8], notes);
+
+        setCellText(row1[1], formatHandbookReading(answers.backBlackLower));
+        setCellText(row1[2], formatHandbookReading(answers.foreBlackLower));
+        setCellText(row1[3], '前');
+        setCellText(row1[4], formatHandbookReading(answers.foreBlackMid));
+        setCellText(row1[5], formatHandbookReading(answers.foreRedMid));
+        setCellText(row1[6], handbookText(answers.front10));
+
+        setCellText(row2[1], handbookText(answers.backDist));
+        setCellText(row2[2], handbookText(answers.foreDist));
+        setCellText(row2[3], '后－前');
+        setCellText(row2[4], handbookText(answers.blackHeightDiff));
+        setCellText(row2[5], handbookText(answers.rawRedHeightDiff));
+        setCellText(row2[6], handbookText(answers.check13));
+        setCellText(row2[7], handbookText(answers.mean14));
+
+        setCellText(row3[1], handbookText(answers.sightDiff));
+        setCellText(row3[2], handbookText(answers.cumulativeSightDiff));
+      }
+
+      function childElements(parent, localName) {
+        if (!parent) return [];
+        return [...parent.childNodes].filter(node => node.nodeType === 1 && (!localName || node.localName === localName));
+      }
+
+      function previousElement(node) {
+        let current = node && node.previousSibling;
+        while (current && current.nodeType !== 1) current = current.previousSibling;
+        return current || null;
+      }
+
+      function nextElement(node) {
+        let current = node && node.nextSibling;
+        while (current && current.nodeType !== 1) current = current.nextSibling;
+        return current || null;
+      }
+
+      function cellText(cell) {
+        return cell ? cell.textContent || '' : '';
+      }
+
+      function setCellText(cell, value) {
+        if (!cell) return;
+        const doc = cell.ownerDocument;
+        const content = handbookText(value);
+        let paragraph = childElements(cell, 'p')[0];
+        if (paragraph) {
+          paragraph = paragraph.cloneNode(true);
+          const texts = [...paragraph.getElementsByTagNameNS(W_NS, 't')];
+          if (texts.length) {
+            setTextNode(texts[0], content);
+            texts.slice(1).forEach(text => {
+              const run = text.parentNode;
+              if (run && run.parentNode) run.parentNode.removeChild(run);
+            });
+            [...paragraph.getElementsByTagNameNS(W_NS, 'br')].forEach(br => {
+              if (br.parentNode) br.parentNode.removeChild(br);
+            });
+          } else {
+            let run = childElements(paragraph, 'r')[0];
+            if (!run) {
+              run = doc.createElementNS(W_NS, 'w:r');
+              paragraph.appendChild(run);
+            }
+            const text = doc.createElementNS(W_NS, 'w:t');
+            setTextNode(text, content);
+            run.appendChild(text);
+          }
+        } else {
+          paragraph = doc.createElementNS(W_NS, 'w:p');
+          const run = doc.createElementNS(W_NS, 'w:r');
+          const text = doc.createElementNS(W_NS, 'w:t');
+          setTextNode(text, content);
+          run.appendChild(text);
+          paragraph.appendChild(run);
+        }
+        [...cell.childNodes].forEach(child => {
+          if (!(child.nodeType === 1 && child.localName === 'tcPr')) cell.removeChild(child);
+        });
+        cell.appendChild(paragraph);
+      }
+
+      function setTextNode(text, content) {
+        if (/^\s|\s$/.test(content)) {
+          text.setAttributeNS(XML_NS, 'xml:space', 'preserve');
+        } else {
+          text.removeAttributeNS(XML_NS, 'space');
+        }
+        text.textContent = content;
+      }
+
+      function handbookText(value) {
+        return String(value == null ? '' : value).trim();
+      }
+
+      function formatHandbookReading(value) {
+        const text = handbookText(value).replace(/\s+/g, '');
+        return /^\d{4}$/.test(text) ? text[0] + ' ' + text.slice(1) : handbookText(value);
+      }
+
+      function base64ToArrayBuffer(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        return bytes.buffer;
+      }
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function safeFileDate(value) {
+        const date = value ? new Date(value) : new Date();
+        if (!Number.isFinite(date.getTime())) return '记录';
+        return date.getFullYear() + String(date.getMonth() + 1).padStart(2, '0') + String(date.getDate()).padStart(2, '0') + '-' +
+          String(date.getHours()).padStart(2, '0') + String(date.getMinutes()).padStart(2, '0');
+      }
+
       function updateSetting(input) {
         const key = input.dataset.setting;
         if (!Object.prototype.hasOwnProperty.call(DEFAULT_SETTINGS, key)) return;
@@ -2025,6 +2480,7 @@
       }
 
       function updateReading(input) {
+        if (state.historyView) return;
         const key = input.dataset.readingKey;
         const shot = input.dataset.shot;
         const station = activeStation();
@@ -2047,19 +2503,64 @@
         }
         persist();
         if (hadReview) {
-          render();
+          renderWithReadingFocus(input);
           return;
         }
         if (shot && wasComplete !== isShotComplete(shot, answers)) {
-          render();
+          renderWithReadingFocus(input);
           return;
         }
         if (!shot && wasComplete !== allFaceReadingsComplete(answers)) {
-          render();
+          renderWithReadingFocus(input);
           return;
         }
         renderChecks();
         renderHeaderStats();
+      }
+
+      function renderWithReadingFocus(input) {
+        const snapshot = readingFocusSnapshot(input);
+        render();
+        restoreReadingFocus(snapshot);
+      }
+
+      function readingFocusSnapshot(input) {
+        if (!input || !input.matches || !input.matches('[data-reading-key]')) return null;
+        const snapshot = {
+          key: input.dataset.readingKey || '',
+          shot: input.dataset.shot || '',
+          start: null,
+          end: null
+        };
+        try {
+          if (typeof input.selectionStart === 'number') {
+            snapshot.start = input.selectionStart;
+            snapshot.end = input.selectionEnd;
+          }
+        } catch (error) {
+          snapshot.start = null;
+          snapshot.end = null;
+        }
+        return snapshot;
+      }
+
+      function restoreReadingFocus(snapshot) {
+        if (!snapshot || !snapshot.key) return;
+        requestAnimationFrame(() => {
+          const next = [...document.querySelectorAll('[data-reading-key]')].find(input => {
+            return input.dataset.readingKey === snapshot.key
+              && (input.dataset.shot || '') === snapshot.shot;
+          });
+          if (!next || next.disabled) return;
+          next.focus({ preventScroll: true });
+          if (snapshot.start != null && typeof next.setSelectionRange === 'function') {
+            try {
+              next.setSelectionRange(snapshot.start, snapshot.end == null ? snapshot.start : snapshot.end);
+            } catch (error) {
+              // Some input modes do not expose selection; focus restoration is enough.
+            }
+          }
+        });
       }
 
       function render() {
@@ -2103,18 +2604,15 @@
       }
 
       function renderSettingTerminology() {
-        const meta = currentStandardMeta();
         const terms = currentStandardTerms();
         const labelMap = {
           rodAConstantMm: 'A尺常数 mm',
           rodBConstantMm: 'B尺常数 mm',
           sightMaxM: '视距上限 m',
-          sightDiffMaxM: meta.level === 'second' ? '前后距差 m（' + meta.instrument + '）' : '前后距差 m',
-          cumulativeSightDiffMaxM: meta.level === 'second' ? '累计距差 m（' + meta.instrument + '）' : '累计距差 m',
+          sightDiffMaxM: '前后距差 m',
+          cumulativeSightDiffMaxM: '累计距差 m',
           redBlackDiffMm: terms.redBlackSetting,
           heightDiffMm: terms.heightSetting,
-          intermittentPointDiffMm: terms.intermittentSetting,
-          readToleranceMm: '读数判定误差 mm',
           testCount: '测验站数'
         };
         Object.keys(labelMap).forEach(key => {
@@ -2142,6 +2640,17 @@
       }
 
       function renderHeaderStats() {
+        if (state.historyView) {
+          const summary = state.historyView.summary || {};
+          els.statMode.textContent = '回放';
+          els.statDone.textContent = state.historyView.kind === 'test'
+            ? (historyStationIndex() + 1) + '/' + Math.max(1, historyStations().length)
+            : '1/1';
+          els.statDoneLabel.textContent = '历史测站';
+          els.statAccuracy.textContent = summary.accuracy != null ? summary.accuracy + '%' : '只读';
+          els.statMistakes.textContent = state.mistakeStations.length;
+          return;
+        }
         if (state.mode === 'test') {
           const total = state.testStations.length;
           const answered = state.testStations.filter(st => hasAnyAnswer(state.testAnswers[st.id] || {})).length;
@@ -2166,23 +2675,31 @@
       function renderToolbar() {
         const station = activeStation();
         if (!station) return;
-        if (state.mode === 'test') {
+        if (state.historyView) {
+          if (state.historyView.kind === 'test') {
+            els.stationTitle.textContent = '历史测验 ' + (historyStationIndex() + 1) + ' / ' + historyStations().length;
+          } else {
+            els.stationTitle.textContent = '历史测站 ' + (station.number || '');
+          }
+        } else if (state.mode === 'test') {
           els.stationTitle.textContent = '测验测站 ' + (state.testIndex + 1) + ' / ' + state.testStations.length;
         } else {
           els.stationTitle.textContent = '练习测站 ' + station.number;
         }
         els.stationMeta.textContent = '后尺常数 ' + station.back.constant + 'mm，前尺常数 ' + station.fore.constant + 'mm';
 
+        const history = Boolean(state.historyView);
         const practice = state.mode === 'practice';
-        els.newPracticeBtn.classList.toggle('hidden', !practice);
-        els.gradePracticeBtn.classList.toggle('hidden', !practice);
-        els.revealPracticeBtn.classList.toggle('hidden', !practice);
-        els.prevStationBtn.classList.toggle('hidden', practice);
-        els.nextStationBtn.classList.toggle('hidden', practice);
-        els.submitTestBtn.classList.toggle('hidden', practice);
-        els.startTestBtn.classList.toggle('hidden', practice);
-        els.prevStationBtn.disabled = state.testIndex <= 0;
-        els.nextStationBtn.disabled = state.testIndex >= state.testStations.length - 1;
+        els.newPracticeBtn.classList.toggle('hidden', history || !practice);
+        els.gradePracticeBtn.classList.toggle('hidden', history || !practice);
+        els.revealPracticeBtn.classList.toggle('hidden', history || !practice);
+        els.prevStationBtn.classList.toggle('hidden', history ? state.historyView.kind !== 'test' : practice);
+        els.nextStationBtn.classList.toggle('hidden', history ? state.historyView.kind !== 'test' : practice);
+        els.submitTestBtn.classList.toggle('hidden', history || practice);
+        els.startTestBtn.classList.toggle('hidden', history || practice);
+        els.exitHistoryBtn.classList.toggle('hidden', !history);
+        els.prevStationBtn.disabled = history ? historyStationIndex() <= 0 : state.testIndex <= 0;
+        els.nextStationBtn.disabled = history ? historyStationIndex() >= historyStations().length - 1 : state.testIndex >= state.testStations.length - 1;
         els.submitTestBtn.textContent = state.testSubmitted ? '重新交卷' : '交卷';
       }
 
@@ -2380,24 +2897,25 @@
         const grade = visibleGrade();
         const expected = station ? expectedValues(station) : {};
         const reveal = state.practiceReveal || state.testSubmitted;
-        const disabled = state.mode === 'test' && state.testSubmitted;
+        const disabled = Boolean(state.historyView) || (state.mode === 'test' && state.testSubmitted);
         const details = grade ? grade.details : {};
         const idealCalc = station ? computeFromValues(expected, station, station.cumulativeBeforeM) : {};
         const specByKey = {};
-        getDerivedFieldSpecs(idealCalc, state.settings).forEach(spec => { specByKey[spec.key] = spec; });
+        getDerivedFieldSpecs(idealCalc, activeReviewSettings()).forEach(spec => { specByKey[spec.key] = spec; });
 
         function inputTd(key, shot, colspan) {
           const detail = details[key];
-          const cls = detail && detail.present ? (detail.ok ? 'good' : 'bad') : '';
+          const cls = detail && detail.present && detail.checked !== false ? (detail.ok ? 'good' : 'bad') : '';
           const locked = !canOpenShot(shot);
           const answerText = reveal && expected[key] != null
             ? '标答 ' + formatM(expected[key])
-            : locked ? '先完成前一项' : '';
+            : '';
           const value = answers[key] == null ? '' : String(answers[key]);
           return (
             '<td' + (colspan ? ' colspan="' + colspan + '"' : '') + (locked ? ' class="locked"' : '') + '>' +
               '<input class="' + cls + '" ' + (disabled || locked ? 'disabled ' : '') +
                 'inputmode="numeric" autocomplete="off" placeholder="0000" ' +
+                'maxlength="4" pattern="[0-9]*" ' +
                 'data-reading-key="' + key + '" data-shot="' + shot + '" ' +
                 'aria-label="' + escapeHtml(OBS_LABELS[key]) + '" value="' + escapeHtml(value) + '">' +
               '<span class="answer-line' + (locked ? ' lock-line' : '') + '">' + escapeHtml(answerText) + '</span>' +
@@ -2495,15 +3013,16 @@
         const station = activeStation();
         if (!station) return;
         const answers = activeAnswers(station);
-        const shouldShow = state.mode === 'test' ? state.testSubmitted : state.checksVisible;
+        const shouldShow = state.historyView ? true : state.mode === 'test' ? state.testSubmitted : state.checksVisible;
         if (!shouldShow) {
           renderCheckPlaceholder(answers);
           return;
         }
-        const grade = visibleGrade() || gradeStation(station, answers, cumulativeBeforeActiveStation());
+        const settings = activeReviewSettings();
+        const standardKey = activeStandardKey();
+        const grade = visibleGrade() || gradeStation(station, answers, cumulativeBeforeActiveStation(), { settings, standardKey });
         const calc = grade.calc;
-        const settings = state.settings;
-        const terms = currentStandardTerms();
+        const terms = standardTermsForKey(standardKey);
         const items = [
           {
             label: '后视距',
@@ -2568,7 +3087,7 @@
 
       function renderCheckPlaceholder(answers) {
         const complete = allFaceReadingsComplete(answers);
-        const terms = currentStandardTerms();
+        const terms = standardTermsForKey(activeStandardKey());
         els.checkSummary.textContent = complete ? '待提交' : '待读数';
         els.checkGrid.innerHTML = '<div class="check-placeholder">' +
           (complete ? '读数已完成，点击“提交复核”查看视距、' + terms.reviewHint + '。' : '按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数后，再提交复核。') +
@@ -2600,19 +3119,26 @@
         const latestPractice = state.practiceRecords.slice(-4).reverse();
 
         latestTests.forEach(record => {
+          const hasSnapshot = Boolean(record.snapshot);
           rows.push(
             '<div class="history-item">' +
               '<strong><span class="tag ' + (record.accuracy >= 80 ? 'good' : record.accuracy >= 60 ? 'neutral' : 'bad') + '">测验</span> ' + formatDate(record.at) + '</strong>' +
               '<span>通过 ' + record.correct + '/' + record.total + '，正确率 ' + record.accuracy + '%，已答 ' + record.answered + '</span>' +
+              '<div class="history-footer"><span class="history-status">' + (hasSnapshot ? '可回放，可导出' : '旧记录无快照') + '</span><div class="history-actions">' +
+                '<button ' + (hasSnapshot ? 'data-history-kind="test" data-history-view="' + escapeHtml(record.id) + '"' : 'disabled') + '>查看</button>' +
+                '<button ' + (hasSnapshot ? 'data-export-test="' + escapeHtml(record.id) + '"' : 'disabled') + '>导出Word</button></div></div>' +
             '</div>'
           );
         });
 
         latestPractice.forEach(record => {
+          const hasSnapshot = Boolean(record.snapshot);
           rows.push(
             '<div class="history-item">' +
               '<strong><span class="tag ' + (record.correct ? 'good' : 'bad') + '">' + (record.correct ? '通过' : '错站') + '</span> 测站 ' + record.stationNumber + '</strong>' +
               '<span>' + formatDate(record.at) + (record.issueText ? '，' + escapeHtml(record.issueText) : '') + '</span>' +
+              '<div class="history-footer"><span class="history-status">' + (hasSnapshot ? '可回放' : '旧记录无快照') + '</span><div class="history-actions">' +
+                '<button ' + (hasSnapshot ? 'data-history-kind="practice" data-history-view="' + escapeHtml(record.id) + '"' : 'disabled') + '>查看</button></div></div>' +
             '</div>'
           );
         });
@@ -2622,7 +3148,9 @@
             '<div class="history-item">' +
               '<strong><span class="tag bad">补练</span> 错站 ' + escapeHtml(item.station.number || '') + '</strong>' +
               '<span>' + escapeHtml(item.issueText || '读数或校核未通过') + '</span>' +
-              '<div class="small-row"><span>' + formatDate(item.at) + '</span><button data-load-mistake="' + item.id + '">载入</button></div>' +
+              '<div class="history-footer"><span class="history-status">' + formatDate(item.at) + '</span><div class="history-actions">' +
+                '<button data-history-kind="mistake" data-history-view="' + escapeHtml(item.id) + '">查看</button>' +
+                '<button data-load-mistake="' + escapeHtml(item.id) + '">补练</button></div></div>' +
             '</div>'
           );
         });
@@ -2640,6 +3168,12 @@
       }
 
       function activeStation() {
+        if (state.historyView) {
+          if (state.historyView.kind === 'test') {
+            return historyStations()[historyStationIndex()] || null;
+          }
+          return state.historyView.snapshot && state.historyView.snapshot.station;
+        }
         if (state.mode === 'test') {
           return state.testStations[state.testIndex] || state.testStations[0] || state.practiceStation;
         }
@@ -2647,6 +3181,14 @@
       }
 
       function activeAnswers(station) {
+        if (state.historyView) {
+          const snapshot = state.historyView.snapshot || {};
+          if (state.historyView.kind === 'test') {
+            const active = station || activeStation();
+            return (snapshot.answersByStationId && active && snapshot.answersByStationId[active.id]) || {};
+          }
+          return snapshot.answers || {};
+        }
         if (state.mode === 'test') {
           if (!station) return {};
           if (!state.testAnswers[station.id]) state.testAnswers[station.id] = {};
@@ -2656,6 +3198,7 @@
       }
 
       function visibleGrade() {
+        if (state.historyView) return null;
         if (state.mode === 'test') {
           return state.testSubmitted && state.testGrade ? state.testGrade.stationGrades[state.testIndex] : null;
         }
@@ -2663,6 +3206,21 @@
       }
 
       function cumulativeBeforeActiveStation() {
+        if (state.historyView && state.historyView.kind === 'test') {
+          const settings = activeReviewSettings();
+          const standardKey = activeStandardKey();
+          let cumulative = 0;
+          const stations = historyStations();
+          for (let i = 0; i < historyStationIndex(); i += 1) {
+            const station = stations[i];
+            const answers = activeAnswers(station);
+            const grade = gradeStation(station, answers, cumulative, { live: true, settings, standardKey });
+            if (Number.isFinite(grade.calc.cumulativeSightDiffM)) {
+              cumulative = grade.calc.cumulativeSightDiffM;
+            }
+          }
+          return cumulative;
+        }
         if (state.mode !== 'test') return 0;
         let cumulative = 0;
         for (let i = 0; i < state.testIndex; i += 1) {
@@ -2674,6 +3232,24 @@
           }
         }
         return cumulative;
+      }
+
+      function activeReviewSettings() {
+        return (state.historyView && state.historyView.snapshot && state.historyView.snapshot.settings) || state.settings;
+      }
+
+      function activeStandardKey() {
+        return (state.historyView && state.historyView.snapshot && state.historyView.snapshot.standardKey) || state.standardKey;
+      }
+
+      function historyStations() {
+        const snapshot = state.historyView && state.historyView.snapshot;
+        return snapshot && Array.isArray(snapshot.stations) ? snapshot.stations : [];
+      }
+
+      function historyStationIndex() {
+        const stations = historyStations();
+        return clamp(Number(state.historyView && state.historyView.stationIndex) || 0, 0, Math.max(0, stations.length - 1));
       }
 
       function createStation(number, cumulativeBeforeM) {
@@ -2759,8 +3335,8 @@
 
       function gradeStation(station, answers, cumulativeBeforeM, options = {}) {
         const expected = expectedValues(station);
-        const settings = state.settings;
-        const terms = currentStandardTerms();
+        const settings = options.settings || state.settings;
+        const terms = options.standardKey ? standardTermsForKey(options.standardKey) : currentStandardTerms();
         const details = {};
         const values = {};
         const issues = [];
@@ -2779,16 +3355,8 @@
           }
           const actual = parsed.mm;
           const diff = actual - expected[key];
-          const ok = Math.abs(diff) <= settings.readToleranceMm;
-          details[key] = { present: true, ok, expected: expected[key], actual, diff };
+          details[key] = { present: true, ok: true, checked: false, expected: expected[key], actual, diff };
           values[key] = actual;
-          if (!ok && !options.live) {
-            issues.push({
-              kind: 'reading',
-              key,
-              message: OBS_LABELS[key] + '差 ' + signed(diff) + 'mm，限 ±' + settings.readToleranceMm + 'mm'
-            });
-          }
         });
 
         const calc = computeFromValues(values, station, cumulativeBeforeM);
@@ -2898,8 +3466,6 @@
         const mean14 = (idealCalc.blackHeightDiffMm != null && idealCalc.redHeightDiffMm != null)
           ? (idealCalc.blackHeightDiffMm + idealCalc.redHeightDiffMm) / 2000
           : null;
-        const readTol = Math.max(0, Number(activeSettings.readToleranceMm) || 0);
-        const distanceTolM = Math.max(0.1, readTol * 0.2);
         const redBlackTolMm = Math.max(0.01, Number(activeSettings.redBlackDiffMm) || 0);
         const heightTolM = Math.max(0.00001, Number(activeSettings.heightDiffMm) || 0) / 1000;
         const sightDiffTolM = Math.max(0.05, Number(activeSettings.sightDiffMaxM) || 0);
@@ -2907,8 +3473,6 @@
         return [
           { key: 'back9', expected: back9, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
           { key: 'front10', expected: front10, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
-          { key: 'backDist', expected: idealCalc.backDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
-          { key: 'foreDist', expected: idealCalc.foreDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
           { key: 'blackHeightDiff', expected: blackHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
           { key: 'rawRedHeightDiff', expected: rawRedHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
           { key: 'check13', expected: check13, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
@@ -2941,6 +3505,12 @@
           return { present: true, valid: false, mm: null };
         }
         return { present: true, valid: true, mm: Math.round(number) };
+      }
+
+      function isStaffReadingComplete(value) {
+        const parsed = parseReading(value);
+        if (!parsed.present || !parsed.valid) return false;
+        return /^\d{4}$/.test(String(value == null ? '' : value).trim().replace(/\s+/g, ''));
       }
 
       function parseDecimalSigned(value) {
