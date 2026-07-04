@@ -184,8 +184,13 @@
     }
 
     input.bad {
-      border-color: #fda4af;
-      background: rgba(255, 241, 242, 0.50);
+      border-color: #e11d48;
+      background: rgba(254, 202, 202, 0.72);
+      color: #7f1d1d;
+      box-shadow:
+        0 0 0 2px rgba(225, 29, 72, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        0 10px 22px rgba(127, 29, 29, 0.16);
     }
 
     .app-header {
@@ -350,8 +355,7 @@
     .observation-table-wrap,
     .check-item,
     .check-placeholder,
-    .result-box,
-    .history-item {
+    .result-box {
       background-clip: padding-box;
       isolation: isolate;
       overflow: hidden;
@@ -368,8 +372,7 @@
     .station-toolbar::before,
     .observation-table-wrap::before,
     .check-item::before,
-    .result-box::before,
-    .history-item::before {
+    .result-box::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -393,8 +396,7 @@
     .station-toolbar::after,
     .observation-table-wrap::after,
     .check-item::after,
-    .result-box::after,
-    .history-item::after {
+    .result-box::after {
       content: "";
       position: absolute;
       inset: 1px;
@@ -423,8 +425,7 @@
     .station-toolbar > *,
     .observation-table-wrap > *,
     .check-item > *,
-    .result-box > *,
-    .history-item > * {
+    .result-box > * {
       position: relative;
       z-index: 1;
     }
@@ -446,8 +447,7 @@
     .shot-switch,
     .check-item,
     .check-placeholder,
-    .result-box,
-    .history-item {
+    .result-box {
       border: 1px solid var(--line);
       background: var(--surface);
       box-shadow: var(--glass-shadow);
@@ -797,18 +797,20 @@
     .observation-table-wrap {
       overflow-x: auto;
       border-radius: var(--radius);
+      padding: 12px;
     }
 
     .observation-table {
       width: 100%;
-      min-width: 760px;
+      min-width: 720px;
       border-collapse: collapse;
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(73, 83, 96, 0.38);
     }
 
     .observation-table th,
     .observation-table td {
-      border: 1px solid var(--line);
+      border: 1px solid rgba(73, 83, 96, 0.34);
       padding: 6px;
       text-align: center;
       vertical-align: middle;
@@ -824,22 +826,60 @@
     }
 
     .observation-table td {
-      min-width: 78px;
+      min-width: 72px;
     }
 
     .observation-table .narrow-th {
       min-width: 0;
-      width: 28px;
+      width: 26px;
       padding: 6px 3px;
     }
 
     .observation-table input {
       width: 100%;
       min-height: 32px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(71, 85, 105, 0.38);
       border-radius: 12px;
       text-align: center;
       padding: 0 4px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.84),
+        inset 0 -8px 16px rgba(15, 23, 42, 0.035),
+        0 0 0 1px rgba(255, 255, 255, 0.36),
+        0 7px 15px rgba(3, 18, 28, 0.08);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .observation-table td.filled-cell {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .observation-table input.filled {
+      border-color: rgba(51, 65, 85, 0.48);
+      background: rgba(255, 255, 255, 0.92);
+      color: #111827;
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.86),
+        0 8px 18px rgba(15, 23, 42, 0.10);
+    }
+
+    .observation-table input.good {
+      border-color: #22c55e;
+      background: rgba(220, 252, 231, 0.68);
+      color: #14532d;
+    }
+
+    .observation-table input.bad {
+      border-color: #be123c;
+      background: rgba(254, 202, 202, 0.78);
+      color: #7f1d1d;
+      box-shadow:
+        0 0 0 2px rgba(190, 18, 60, 0.20),
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        0 8px 18px rgba(127, 29, 29, 0.18);
     }
 
     .observation-table .dir-cell {
@@ -908,8 +948,26 @@
     }
 
     .check-item.fail {
-      border-color: rgba(244, 63, 94, 0.46);
-      background: var(--surface);
+      border-color: rgba(190, 18, 60, 0.72);
+      background: rgba(254, 205, 211, 0.56);
+      box-shadow:
+        0 16px 34px rgba(127, 29, 29, 0.18),
+        0 0 0 1px rgba(190, 18, 60, 0.16) inset;
+    }
+
+    .check-item.fail::before {
+      background:
+        radial-gradient(120% 90% at 14% 0%, rgba(255, 255, 255, 0.56), transparent 32%),
+        linear-gradient(135deg, rgba(254, 202, 202, 0.46), rgba(254, 226, 226, 0.18));
+    }
+
+    .check-item.fail::after {
+      opacity: 0.46;
+    }
+
+    .check-item.fail strong,
+    .check-item.fail span {
+      color: #7f1d1d;
     }
 
     .result-box {
@@ -940,9 +998,12 @@
     }
 
     .result-box.bad {
-      border-color: rgba(244, 63, 94, 0.46);
-      background: var(--surface);
+      border-color: rgba(190, 18, 60, 0.72);
+      background: rgba(254, 205, 211, 0.56);
       color: #881337;
+      box-shadow:
+        0 16px 36px rgba(127, 29, 29, 0.18),
+        0 0 0 1px rgba(190, 18, 60, 0.14) inset;
     }
 
     .result-box.neutral {
@@ -1012,16 +1073,35 @@
       margin-top: 10px;
     }
 
+    .history-panel {
+      display: block;
+    }
+
+    .history-panel .panel-body {
+      display: block;
+    }
+
     .history-list {
       display: grid;
+      align-content: start;
       gap: 8px;
-      max-height: 360px;
-      overflow: auto;
-      padding-right: 2px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-gutter: stable;
     }
 
     .history-item {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.48);
       border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.28)),
+        rgba(255, 255, 255, 0.30);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.70),
+        0 10px 24px rgba(3, 18, 28, 0.08);
       padding: 9px 10px;
     }
 
@@ -1082,8 +1162,7 @@
       .station-toolbar::before,
       .observation-table-wrap::before,
       .check-item::before,
-      .result-box::before,
-      .history-item::before {
+      .result-box::before {
         background-size: 145% 145%, 125% 125%, 100% 100%, 100% 100%;
         animation: liquidDrift 16s ease-in-out infinite alternate;
       }
@@ -1186,6 +1265,20 @@
       .history-footer {
         align-items: stretch;
         flex-direction: column;
+      }
+
+      .history-panel {
+        min-height: 0;
+      }
+
+      .history-panel .panel-body {
+        display: block;
+      }
+
+      .history-list {
+        overflow: visible;
+        padding-right: 0;
+        scrollbar-gutter: auto;
       }
 
       .history-actions {
@@ -1354,6 +1447,7 @@
               <label class="setting"><span data-setting-label="sightMaxM">视距上限 m</span><input type="number" data-setting="sightMaxM" min="1" step="1"></label>
               <label class="setting"><span data-setting-label="sightDiffMaxM">前后距差 m</span><input type="number" data-setting="sightDiffMaxM" min="0" step="0.5"></label>
               <label class="setting"><span data-setting-label="cumulativeSightDiffMaxM">累计距差 m</span><input type="number" data-setting="cumulativeSightDiffMaxM" min="0" step="0.5"></label>
+              <label class="setting"><span data-setting-label="readingErrorMm">尺面刻度读数误差 mm</span><input type="number" data-setting="readingErrorMm" min="0" step="0.1"></label>
               <label class="setting"><span data-setting-label="redBlackDiffMm">红黑面读数差 mm</span><input type="number" data-setting="redBlackDiffMm" min="0" step="0.1"></label>
               <label class="setting"><span data-setting-label="heightDiffMm">红黑面高差之差 mm</span><input type="number" data-setting="heightDiffMm" min="0" step="0.1"></label>
               <label class="setting"><span data-setting-label="testCount">测验站数</span><input type="number" data-setting="testCount" min="1" max="30" step="1"></label>
@@ -1368,7 +1462,7 @@
           </div>
         </section>
 
-        <section class="panel">
+        <section class="panel history-panel">
           <div class="panel-head">
             <h2>最近记录</h2>
             <span id="historyCount">0 条</span>
@@ -1397,6 +1491,7 @@
         sightMaxM: 100,
         sightDiffMaxM: 5,
         cumulativeSightDiffMaxM: 10,
+        readingErrorMm: 5,
         redBlackDiffMm: 3,
         heightDiffMm: 5,
         testCount: 12
@@ -1408,6 +1503,7 @@
         sightMaxM: 75,
         sightDiffMaxM: 3,
         cumulativeSightDiffMaxM: 6,
+        readingErrorMm: 3,
         redBlackDiffMm: 2,
         heightDiffMm: 3,
         testCount: 12
@@ -1428,7 +1524,7 @@
           backReadDiff: '后尺基辅分划读数差',
           foreReadDiff: '前尺基辅分划读数差',
           heightDiff: '基辅分划（黑红面）高差差',
-          reviewHint: '基辅分划（黑红面）读数差、基辅分划（黑红面）高差差'
+          reviewHint: '尺面刻度读数误差、基辅分划（黑红面）读数差、基辅分划（黑红面）高差差'
         },
         fourth: {
           level: 'fourth',
@@ -1437,7 +1533,7 @@
           backReadDiff: '后尺红黑面读数差',
           foreReadDiff: '前尺红黑面读数差',
           heightDiff: '红黑面高差之差',
-          reviewHint: '红黑面读数差、红黑面高差之差'
+          reviewHint: '尺面刻度读数误差、红黑面读数差、红黑面高差之差'
         }
       };
 
@@ -1557,6 +1653,7 @@
         src: '',
         position: ''
       };
+      let persistTimer = 0;
 
       if (['second', 'secondOptical', 'secondDigital'].includes(saved.standardKey)) {
         const testCount = state.settings.testCount;
@@ -1654,7 +1751,27 @@
         }
       }
 
+      function schedulePersist() {
+        if (persistTimer) clearTimeout(persistTimer);
+        persistTimer = setTimeout(() => {
+          persistTimer = 0;
+          persist();
+        }, 250);
+      }
+
+      function flushPersist() {
+        if (!persistTimer) return;
+        clearTimeout(persistTimer);
+        persistTimer = 0;
+        persist();
+      }
+
       function bindEvents() {
+        window.addEventListener('beforeunload', flushPersist);
+        window.addEventListener('resize', () => {
+          requestAnimationFrame(() => fitHistoryListToRows(4));
+        });
+
         document.addEventListener('click', event => {
           const modeButton = event.target.closest('[data-mode]');
           if (modeButton) {
@@ -2475,8 +2592,13 @@
           state.testSubmitted = false;
           state.testGrade = null;
         }
-        persist();
-        render();
+        schedulePersist();
+        renderPresetButtons();
+        renderSettingTerminology();
+        renderSettingsStatus();
+        renderObservationGrid();
+        renderChecks();
+        renderHeaderStats();
       }
 
       function updateReading(input) {
@@ -2490,6 +2612,7 @@
           ? state.testSubmitted
           : Boolean(state.checksVisible || state.practiceGrade || state.practiceReveal);
         answers[key] = input.value;
+        syncFilledInputState(input);
         state.flowNotice = '';
         if (state.mode === 'practice') {
           state.practiceGrade = null;
@@ -2501,26 +2624,45 @@
           state.testGrade = null;
           state.checksVisible = false;
         }
-        persist();
+        schedulePersist();
         if (hadReview) {
-          renderWithReadingFocus(input);
+          renderReadingPanelsWithFocus(input);
           return;
         }
         if (shot && wasComplete !== isShotComplete(shot, answers)) {
-          renderWithReadingFocus(input);
+          renderReadingPanelsWithFocus(input);
           return;
         }
         if (!shot && wasComplete !== allFaceReadingsComplete(answers)) {
-          renderWithReadingFocus(input);
+          renderReadingPanelsWithFocus(input);
           return;
         }
         renderChecks();
         renderHeaderStats();
       }
 
+      function syncFilledInputState(input) {
+        if (!input || !input.classList) return;
+        const filled = String(input.value || '').trim() !== '';
+        input.classList.toggle('filled', filled);
+        const cell = input.closest && input.closest('td');
+        if (cell && cell.classList) cell.classList.toggle('filled-cell', filled);
+      }
+
       function renderWithReadingFocus(input) {
         const snapshot = readingFocusSnapshot(input);
         render();
+        restoreReadingFocus(snapshot);
+      }
+
+      function renderReadingPanelsWithFocus(input) {
+        const snapshot = readingFocusSnapshot(input);
+        normalizeCurrentShot();
+        renderShotButtons();
+        renderToolbar();
+        renderObservationGrid();
+        renderChecks();
+        renderHeaderStats();
         restoreReadingFocus(snapshot);
       }
 
@@ -2611,6 +2753,7 @@
           sightMaxM: '视距上限 m',
           sightDiffMaxM: '前后距差 m',
           cumulativeSightDiffMaxM: '累计距差 m',
+          readingErrorMm: '尺面刻度读数误差 mm',
           redBlackDiffMm: terms.redBlackSetting,
           heightDiffMm: terms.heightSetting,
           testCount: '测验站数'
@@ -2896,12 +3039,21 @@
         const answers = activeAnswers(station);
         const grade = visibleGrade();
         const expected = station ? expectedValues(station) : {};
-        const reveal = state.practiceReveal || state.testSubmitted;
+        const reveal = Boolean(state.historyView) || (state.mode === 'test' ? state.testSubmitted : state.practiceReveal);
         const disabled = Boolean(state.historyView) || (state.mode === 'test' && state.testSubmitted);
         const details = grade ? grade.details : {};
-        const idealCalc = station ? computeFromValues(expected, station, station.cumulativeBeforeM) : {};
+        const enteredValues = station ? validReadingValues(answers, Object.keys(expected)) : {};
+        const enteredCalc = station ? computeFromValues(enteredValues, station, cumulativeBeforeActiveStation()) : {};
         const specByKey = {};
-        getDerivedFieldSpecs(idealCalc, activeReviewSettings()).forEach(spec => { specByKey[spec.key] = spec; });
+        getDerivedFieldSpecs(enteredCalc, activeReviewSettings()).forEach(spec => { specByKey[spec.key] = spec; });
+
+        function hasFilledValue(value) {
+          return String(value == null ? '' : value).trim() !== '';
+        }
+
+        function joinClasses(classes) {
+          return classes.filter(Boolean).join(' ');
+        }
 
         function inputTd(key, shot, colspan) {
           const detail = details[key];
@@ -2911,10 +3063,13 @@
             ? '标答 ' + formatM(expected[key])
             : '';
           const value = answers[key] == null ? '' : String(answers[key]);
+          const filled = hasFilledValue(value);
+          const tdClass = joinClasses([locked ? 'locked' : '', filled ? 'filled-cell' : '']);
+          const inputClass = joinClasses([cls, filled ? 'filled' : '']);
           return (
-            '<td' + (colspan ? ' colspan="' + colspan + '"' : '') + (locked ? ' class="locked"' : '') + '>' +
-              '<input class="' + cls + '" ' + (disabled || locked ? 'disabled ' : '') +
-                'inputmode="numeric" autocomplete="off" placeholder="0000" ' +
+            '<td' + (colspan ? ' colspan="' + colspan + '"' : '') + (tdClass ? ' class="' + tdClass + '"' : '') + '>' +
+              '<input class="' + inputClass + '" ' + (disabled || locked ? 'disabled ' : '') +
+                'inputmode="numeric" autocomplete="off" placeholder="" ' +
                 'maxlength="4" pattern="[0-9]*" ' +
                 'data-reading-key="' + key + '" data-shot="' + shot + '" ' +
                 'aria-label="' + escapeHtml(OBS_LABELS[key]) + '" value="' + escapeHtml(value) + '">' +
@@ -2929,10 +3084,11 @@
           const cls = detail && detail.present ? (detail.ok ? 'good' : 'bad') : '';
           const answerText = reveal && spec && spec.expected != null ? '标答 ' + spec.format(spec.expected) : '';
           const value = answers[key] == null ? '' : String(answers[key]);
+          const filled = hasFilledValue(value);
           return (
-            '<td' + (rowspan ? ' rowspan="' + rowspan + '"' : '') + (colspan ? ' colspan="' + colspan + '"' : '') + '>' +
-              '<input class="' + cls + '" ' + (disabled ? 'disabled ' : '') +
-                'inputmode="decimal" autocomplete="off" placeholder="' + (spec ? spec.placeholder : '') + '" ' +
+            '<td' + (rowspan ? ' rowspan="' + rowspan + '"' : '') + (colspan ? ' colspan="' + colspan + '"' : '') + (filled ? ' class="filled-cell"' : '') + '>' +
+              '<input class="' + joinClasses([cls, filled ? 'filled' : '']) + '" ' + (disabled ? 'disabled ' : '') +
+                'inputmode="decimal" autocomplete="off" placeholder="" ' +
                 'data-reading-key="' + key + '" ' +
                 'aria-label="' + escapeHtml(OBS_LABELS[key] || key) + '" value="' + escapeHtml(value) + '">' +
               '<span class="answer-line">' + escapeHtml(answerText) + '</span>' +
@@ -2951,8 +3107,8 @@
         const stationLabel = station ? String(station.number) : '';
         const notesValue = answers.notes == null ? '' : String(answers.notes);
         const notesTd = (
-          '<td rowspan="4">' +
-            '<input ' + (disabled ? 'disabled ' : '') +
+          '<td rowspan="4"' + (hasFilledValue(notesValue) ? ' class="filled-cell"' : '') + '>' +
+            '<input class="' + (hasFilledValue(notesValue) ? 'filled' : '') + '" ' + (disabled ? 'disabled ' : '') +
               'autocomplete="off" data-reading-key="notes" aria-label="备考" value="' + escapeHtml(notesValue) + '">' +
           '</td>'
         );
@@ -3024,6 +3180,7 @@
         const calc = grade.calc;
         const terms = standardTermsForKey(standardKey);
         const items = [
+          readingErrorCheckItem(grade, expectedValues(station), settings),
           {
             label: '后视距',
             value: calc.backDistanceM,
@@ -3077,12 +3234,28 @@
         els.checkGrid.innerHTML = items.map(item => {
           const cls = item.ok == null ? '' : item.ok ? ' pass' : ' fail';
           return '<div class="check-item' + cls + '">' +
-            '<strong>' + formatCalcValue(item.value, item.unit) + '</strong>' +
+            '<strong>' + escapeHtml(item.valueText || formatCalcValue(item.value, item.unit)) + '</strong>' +
             '<span>' + escapeHtml(item.label) + '</span>' +
           '</div>';
         }).join('');
 
         renderResultBox(grade);
+      }
+
+      function readingErrorCheckItem(grade, expected, settings) {
+        const errors = Object.keys(expected || {})
+          .map(key => grade.details[key])
+          .filter(detail => detail && Number.isFinite(detail.diff))
+          .map(detail => Math.abs(detail.diff));
+        const maxError = errors.length ? Math.max(...errors) : null;
+        const limit = Math.max(0, Number(settings.readingErrorMm) || 0);
+        return {
+          label: '尺面刻度读数误差',
+          value: maxError,
+          unit: 'mm',
+          valueText: maxError == null ? '待填' : Number(maxError).toFixed(maxError % 1 ? 1 : 0) + 'mm',
+          ok: maxError == null ? null : maxError <= limit
+        };
       }
 
       function renderCheckPlaceholder(answers) {
@@ -3157,6 +3330,23 @@
 
         els.historyCount.textContent = (state.practiceRecords.length + state.testRecords.length) + ' 条';
         els.historyList.innerHTML = rows.length ? rows.join('') : '<div class="history-item"><strong>暂无记录</strong><span>完成练习或测验后显示</span></div>';
+        fitHistoryListToRows(4);
+      }
+
+      function fitHistoryListToRows(rowCount) {
+        if (!els.historyList) return;
+        const maxRows = Math.max(0, Number(rowCount) || 0);
+        const items = [...els.historyList.querySelectorAll('.history-item')];
+        els.historyList.style.maxHeight = '';
+        if (!maxRows || items.length <= maxRows) return;
+
+        const target = items[maxRows - 1];
+        const listRect = els.historyList.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const height = Math.ceil(targetRect.bottom - listRect.top + els.historyList.scrollTop + 1);
+        if (height > 0) {
+          els.historyList.style.maxHeight = height + 'px';
+        }
       }
 
       function syncSettingsInputs() {
@@ -3333,6 +3523,15 @@
         };
       }
 
+      function validReadingValues(answers, keys) {
+        const values = {};
+        (keys || []).forEach(key => {
+          const parsed = parseReading(answers && answers[key]);
+          if (parsed.present && parsed.valid) values[key] = parsed.mm;
+        });
+        return values;
+      }
+
       function gradeStation(station, answers, cumulativeBeforeM, options = {}) {
         const expected = expectedValues(station);
         const settings = options.settings || state.settings;
@@ -3340,6 +3539,7 @@
         const details = {};
         const values = {};
         const issues = [];
+        const readingTolMm = Math.max(0, Number(settings.readingErrorMm) || 0);
 
         Object.keys(expected).forEach(key => {
           const parsed = parseReading(answers[key]);
@@ -3355,8 +3555,12 @@
           }
           const actual = parsed.mm;
           const diff = actual - expected[key];
-          details[key] = { present: true, ok: true, checked: false, expected: expected[key], actual, diff };
+          const ok = Math.abs(diff) <= readingTolMm;
+          details[key] = { present: true, ok, checked: true, expected: expected[key], actual, diff };
           values[key] = actual;
+          if (!ok && !options.live) {
+            issues.push({ kind: 'reading-error', key, message: OBS_LABELS[key] + '读数误差 ' + signed(diff) + 'mm，限 ±' + readingTolMm + 'mm' });
+          }
         });
 
         const calc = computeFromValues(values, station, cumulativeBeforeM);
@@ -3368,17 +3572,19 @@
         addLimitIssue(calc.foreRedBlackDiffMm, value => Math.abs(value) <= settings.redBlackDiffMm, terms.foreReadDiff + ' ' + signed(calc.foreRedBlackDiffMm) + 'mm，限 ±' + settings.redBlackDiffMm + 'mm');
         addLimitIssue(calc.heightDiscrepancyMm, value => Math.abs(value) <= settings.heightDiffMm, terms.heightDiff + ' ' + signed(calc.heightDiscrepancyMm) + 'mm，限 ±' + settings.heightDiffMm + 'mm');
 
-        // 手簿计算格：标准答案按真实尺面（与读数对错无关）推算，核对手算是否正确
-        const idealCalc = computeFromValues(expected, station, station.cumulativeBeforeM);
-        const derivedSpecs = getDerivedFieldSpecs(idealCalc, settings);
+        const derivedSpecs = getDerivedFieldSpecs(calc, settings);
         derivedSpecs.forEach(spec => {
           const parsed = parseDecimalSigned(answers[spec.key]);
+          if (spec.expected == null) {
+            details[spec.key] = { present: parsed.present, ok: false, checked: false, expected: null, actual: parsed.valid ? parsed.value : null, diff: null };
+            return;
+          }
           if (!parsed.present) {
             details[spec.key] = { present: false, ok: false, expected: spec.expected, actual: null, diff: null };
             issues.push({ kind: 'missing', key: spec.key, message: OBS_LABELS[spec.key] + '未填入' });
             return;
           }
-          if (!parsed.valid || spec.expected == null) {
+          if (!parsed.valid) {
             details[spec.key] = { present: true, ok: false, expected: spec.expected, actual: null, diff: null };
             issues.push({ kind: 'invalid', key: spec.key, message: OBS_LABELS[spec.key] + '格式无效' });
             return;
@@ -3452,33 +3658,35 @@
         return out;
       }
 
-      // 手簿"计算格"的标准答案规格：expected 取自真实尺面推算值，
-      // tolerance 按读数误差和复核限差放宽，避免只因末位取舍差异误判。
-      function getDerivedFieldSpecs(idealCalc, settings) {
+      // 手簿"计算格"的标准答案规格：expected 按用户填入的合法读数推算。
+      function getDerivedFieldSpecs(calc, settings) {
         const activeSettings = settings || DEFAULT_SETTINGS;
-        const back9 = idealCalc.backRedBlackDiffMm != null ? -idealCalc.backRedBlackDiffMm : null;
-        const front10 = idealCalc.foreRedBlackDiffMm != null ? -idealCalc.foreRedBlackDiffMm : null;
-        const check13 = (idealCalc.foreRedBlackDiffMm != null && idealCalc.backRedBlackDiffMm != null)
-          ? idealCalc.foreRedBlackDiffMm - idealCalc.backRedBlackDiffMm
+        const back9 = calc.backRedBlackDiffMm != null ? -calc.backRedBlackDiffMm : null;
+        const front10 = calc.foreRedBlackDiffMm != null ? -calc.foreRedBlackDiffMm : null;
+        const check13 = (calc.foreRedBlackDiffMm != null && calc.backRedBlackDiffMm != null)
+          ? calc.foreRedBlackDiffMm - calc.backRedBlackDiffMm
           : null;
-        const blackHeightDiffM = idealCalc.blackHeightDiffMm != null ? idealCalc.blackHeightDiffMm / 1000 : null;
-        const rawRedHeightDiffM = idealCalc.rawRedHeightDiffMm != null ? idealCalc.rawRedHeightDiffMm / 1000 : null;
-        const mean14 = (idealCalc.blackHeightDiffMm != null && idealCalc.redHeightDiffMm != null)
-          ? (idealCalc.blackHeightDiffMm + idealCalc.redHeightDiffMm) / 2000
+        const blackHeightDiffM = calc.blackHeightDiffMm != null ? calc.blackHeightDiffMm / 1000 : null;
+        const rawRedHeightDiffM = calc.rawRedHeightDiffMm != null ? calc.rawRedHeightDiffMm / 1000 : null;
+        const mean14 = (calc.blackHeightDiffMm != null && calc.redHeightDiffMm != null)
+          ? (calc.blackHeightDiffMm + calc.redHeightDiffMm) / 2000
           : null;
         const redBlackTolMm = Math.max(0.01, Number(activeSettings.redBlackDiffMm) || 0);
+        const distanceTolM = 0.05;
         const heightTolM = Math.max(0.00001, Number(activeSettings.heightDiffMm) || 0) / 1000;
         const sightDiffTolM = Math.max(0.05, Number(activeSettings.sightDiffMaxM) || 0);
         const cumulativeTolM = Math.max(0.05, Number(activeSettings.cumulativeSightDiffMaxM) || 0);
         return [
+          { key: 'backDist', expected: calc.backDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
+          { key: 'foreDist', expected: calc.foreDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
           { key: 'back9', expected: back9, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
           { key: 'front10', expected: front10, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
           { key: 'blackHeightDiff', expected: blackHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
           { key: 'rawRedHeightDiff', expected: rawRedHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
           { key: 'check13', expected: check13, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
           { key: 'mean14', expected: mean14, tolerance: heightTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(4), placeholder: '0.0000' },
-          { key: 'sightDiff', expected: idealCalc.sightDiffM, tolerance: sightDiffTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' },
-          { key: 'cumulativeSightDiff', expected: idealCalc.cumulativeSightDiffM, tolerance: cumulativeTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' }
+          { key: 'sightDiff', expected: calc.sightDiffM, tolerance: sightDiffTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' },
+          { key: 'cumulativeSightDiff', expected: calc.cumulativeSightDiffM, tolerance: cumulativeTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' }
         ];
       }
 
