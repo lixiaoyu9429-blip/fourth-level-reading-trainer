@@ -38,8 +38,8 @@
         0 2px 4px rgba(255, 255, 255, 0.22) inset,
         0 -18px 30px rgba(255, 255, 255, 0.08) inset,
         0 0 0 1px rgba(255, 255, 255, 0.18) inset;
-      --liquid-blur: saturate(230%) contrast(1.06) brightness(1.08) blur(44px);
-      --liquid-blur-soft: saturate(215%) contrast(1.04) brightness(1.06) blur(30px);
+      --liquid-blur: saturate(180%) contrast(1.03) brightness(1.04) blur(20px);
+      --liquid-blur-soft: saturate(165%) contrast(1.02) brightness(1.03) blur(12px);
       --liquid-highlight:
         radial-gradient(120% 90% at 14% 0%, rgba(255, 255, 255, 0.72), transparent 32%),
         radial-gradient(78% 92% at 88% 16%, rgba(255, 255, 255, 0.30), transparent 38%),
@@ -132,8 +132,8 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.76),
         inset 0 -8px 16px rgba(255, 255, 255, 0.10),
         0 12px 28px rgba(3, 18, 28, 0.12);
-      -webkit-backdrop-filter: var(--liquid-blur-soft);
-      backdrop-filter: var(--liquid-blur-soft);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
       transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
       white-space: nowrap;
     }
@@ -166,8 +166,8 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.70),
         inset 0 -8px 16px rgba(255, 255, 255, 0.08),
         0 8px 20px rgba(3, 18, 28, 0.08);
-      -webkit-backdrop-filter: saturate(210%) contrast(1.04) brightness(1.05) blur(24px);
-      backdrop-filter: saturate(210%) contrast(1.04) brightness(1.05) blur(24px);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     input:focus {
@@ -245,8 +245,8 @@
       background: var(--surface);
       padding: 7px 10px;
       box-shadow: var(--glass-shadow);
-      -webkit-backdrop-filter: saturate(210%) blur(32px);
-      backdrop-filter: saturate(210%) blur(32px);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .stat strong {
@@ -288,8 +288,8 @@
       background: var(--surface);
       box-shadow: var(--glass-shadow);
       padding: 6px;
-      -webkit-backdrop-filter: saturate(205%) blur(32px);
-      backdrop-filter: saturate(205%) blur(32px);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .chip.active,
@@ -451,8 +451,8 @@
       border: 1px solid var(--line);
       background: var(--surface);
       box-shadow: var(--glass-shadow);
-      -webkit-backdrop-filter: var(--liquid-blur-soft);
-      backdrop-filter: var(--liquid-blur-soft);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .glass-card {
@@ -504,8 +504,8 @@
       min-width: 0;
       background: var(--surface);
       box-shadow: var(--glass-shadow);
-      -webkit-backdrop-filter: var(--liquid-blur-soft);
-      backdrop-filter: var(--liquid-blur-soft);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .mini-card strong {
@@ -717,8 +717,8 @@
       border: 1px solid currentColor;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.44);
-      -webkit-backdrop-filter: saturate(180%) blur(16px);
-      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
       padding: 1px 6px;
       font-size: 12px;
       line-height: 1.2;
@@ -983,8 +983,8 @@
       padding: 16px 14px;
       background: var(--surface);
       box-shadow: var(--glass-shadow);
-      -webkit-backdrop-filter: var(--liquid-blur-soft);
-      backdrop-filter: var(--liquid-blur-soft);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
@@ -1144,28 +1144,6 @@
       min-width: 76px;
       padding: 0 12px;
       font-size: 12px;
-    }
-
-    @keyframes liquidDrift {
-      0% { background-position: 0% 0%, 100% 0%, 0% 0%, 50% 50%; }
-      100% { background-position: 8% 10%, 92% 6%, 100% 100%, 46% 54%; }
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .glass-card::before,
-      .app-header::before,
-      .panel::before,
-      .stat::before,
-      .mini-card::before,
-      .mode-switch::before,
-      .shot-switch::before,
-      .station-toolbar::before,
-      .observation-table-wrap::before,
-      .check-item::before,
-      .result-box::before {
-        background-size: 145% 145%, 125% 125%, 100% 100%, 100% 100%;
-        animation: liquidDrift 16s ease-in-out infinite alternate;
-      }
     }
 
     .tag {
@@ -1975,6 +1953,22 @@
       }
 
       function gradePractice() {
+        if (state.practiceGrade) return;
+        const latestRecord = state.practiceRecords[state.practiceRecords.length - 1];
+        const latestSnapshot = latestRecord && latestRecord.snapshot;
+        if (latestSnapshot && submissionSignature(
+          [latestSnapshot.station],
+          latestSnapshot.answers,
+          latestSnapshot.settings,
+          latestSnapshot.standardKey
+        ) === submissionSignature(
+          [state.practiceStation],
+          state.practiceAnswers,
+          state.settings,
+          state.standardKey
+        )) {
+          return;
+        }
         const grade = gradeStation(state.practiceStation, state.practiceAnswers, 0);
         state.practiceGrade = grade;
         state.practiceReveal = false;
@@ -2007,7 +2001,22 @@
       }
 
       function submitTest() {
-        if (!state.testStations.length) return;
+        if (!state.testStations.length || state.testSubmitted) return;
+        const latestRecord = state.testRecords[state.testRecords.length - 1];
+        const latestSnapshot = latestRecord && latestRecord.snapshot;
+        if (latestSnapshot && submissionSignature(
+          latestSnapshot.stations,
+          latestSnapshot.answersByStationId,
+          latestSnapshot.settings,
+          latestSnapshot.standardKey
+        ) === submissionSignature(
+          state.testStations,
+          state.testAnswers,
+          state.settings,
+          state.standardKey
+        )) {
+          return;
+        }
         const stationGrades = [];
         let correct = 0;
         let answered = 0;
@@ -2089,6 +2098,38 @@
           testIndex: state.testIndex,
           currentShot: state.currentShot
         };
+      }
+
+      function submissionSignature(stations, answers, settings, standardKey) {
+        const reviewSettingKeys = [
+          'sightMaxM',
+          'sightDiffMaxM',
+          'cumulativeSightDiffMaxM',
+          'readingErrorMm',
+          'redBlackDiffMm',
+          'heightDiffMm'
+        ];
+        return JSON.stringify({
+          stationIds: (stations || []).map(station => String(station && station.id || '')),
+          answers: normalizedAnswers(answers),
+          settings: reviewSettingKeys.map(key => [key, Number(settings && settings[key])]),
+          standardKey: standardKey || 'fourth'
+        });
+      }
+
+      function normalizedAnswers(source) {
+        const normalized = {};
+        Object.keys(source || {}).sort().forEach(key => {
+          const value = source[key];
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            const nested = normalizedAnswers(value);
+            if (Object.keys(nested).length) normalized[key] = nested;
+            return;
+          }
+          const text = String(value == null ? '' : value).trim();
+          if (text) normalized[key] = text;
+        });
+        return normalized;
       }
 
       function loadMistake(id) {
@@ -2201,6 +2242,7 @@
       }
 
       function resetRecords() {
+        if (!window.confirm('确定清空全部练习、测验和错站记录吗？此操作无法恢复。')) return;
         state.historyView = null;
         state.practiceRecords = [];
         state.testRecords = [];
@@ -2279,7 +2321,8 @@
           stripOptionalHandbookAttributes(xmlDoc);
           zip.file('word/document.xml', new XMLSerializer().serializeToString(xmlDoc));
           const blob = await zip.generateAsync({ type: 'blob' });
-          downloadBlob(blob, '四等水准观测记录表-' + safeFileDate(record.at) + '.docx');
+          const exportLevel = snapshot.standardKey === 'thirdMiddle' ? '三等' : '四等';
+          downloadBlob(blob, exportLevel + '水准观测记录表-' + safeFileDate(record.at) + '.docx');
         } catch (error) {
           console.error(error);
           window.alert('导出 Word 失败：' + (error && error.message ? error.message : error));
@@ -2596,6 +2639,7 @@
         renderPresetButtons();
         renderSettingTerminology();
         renderSettingsStatus();
+        renderToolbar();
         renderObservationGrid();
         renderChecks();
         renderHeaderStats();
@@ -2833,6 +2877,7 @@
 
         const history = Boolean(state.historyView);
         const practice = state.mode === 'practice';
+        const practiceReviewed = practice && Boolean(state.practiceGrade);
         els.newPracticeBtn.classList.toggle('hidden', history || !practice);
         els.gradePracticeBtn.classList.toggle('hidden', history || !practice);
         els.revealPracticeBtn.classList.toggle('hidden', history || !practice);
@@ -2843,7 +2888,10 @@
         els.exitHistoryBtn.classList.toggle('hidden', !history);
         els.prevStationBtn.disabled = history ? historyStationIndex() <= 0 : state.testIndex <= 0;
         els.nextStationBtn.disabled = history ? historyStationIndex() >= historyStations().length - 1 : state.testIndex >= state.testStations.length - 1;
-        els.submitTestBtn.textContent = state.testSubmitted ? '重新交卷' : '交卷';
+        els.gradePracticeBtn.disabled = practiceReviewed;
+        els.gradePracticeBtn.textContent = state.practiceReveal ? '答案已显示' : practiceReviewed ? '已提交复核' : '提交复核';
+        els.submitTestBtn.disabled = !history && !practice && state.testSubmitted;
+        els.submitTestBtn.textContent = state.testSubmitted ? '已交卷' : '交卷';
       }
 
       function renderStaff() {
@@ -3338,6 +3386,7 @@
         const maxRows = Math.max(0, Number(rowCount) || 0);
         const items = [...els.historyList.querySelectorAll('.history-item')];
         els.historyList.style.maxHeight = '';
+        if (window.matchMedia && window.matchMedia('(max-width: 560px)').matches) return;
         if (!maxRows || items.length <= maxRows) return;
 
         const target = items[maxRows - 1];
@@ -3659,8 +3708,7 @@
       }
 
       // 手簿"计算格"的标准答案规格：expected 按用户填入的合法读数推算。
-      function getDerivedFieldSpecs(calc, settings) {
-        const activeSettings = settings || DEFAULT_SETTINGS;
+      function getDerivedFieldSpecs(calc) {
         const back9 = calc.backRedBlackDiffMm != null ? -calc.backRedBlackDiffMm : null;
         const front10 = calc.foreRedBlackDiffMm != null ? -calc.foreRedBlackDiffMm : null;
         const check13 = (calc.foreRedBlackDiffMm != null && calc.backRedBlackDiffMm != null)
@@ -3671,37 +3719,44 @@
         const mean14 = (calc.blackHeightDiffMm != null && calc.redHeightDiffMm != null)
           ? (calc.blackHeightDiffMm + calc.redHeightDiffMm) / 2000
           : null;
-        const redBlackTolMm = Math.max(0.01, Number(activeSettings.redBlackDiffMm) || 0);
+        const integerMmTol = 0.5;
         const distanceTolM = 0.05;
-        const heightTolM = Math.max(0.00001, Number(activeSettings.heightDiffMm) || 0) / 1000;
-        const sightDiffTolM = Math.max(0.05, Number(activeSettings.sightDiffMaxM) || 0);
-        const cumulativeTolM = Math.max(0.05, Number(activeSettings.cumulativeSightDiffMaxM) || 0);
+        const heightTolM = 0.0005;
+        const meanHeightTolM = 0.00005;
         return [
           { key: 'backDist', expected: calc.backDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
           { key: 'foreDist', expected: calc.foreDistanceM, tolerance: distanceTolM, unit: 'm', format: v => v.toFixed(1), placeholder: '0.0' },
-          { key: 'back9', expected: back9, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
-          { key: 'front10', expected: front10, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
+          { key: 'back9', expected: back9, tolerance: integerMmTol, unit: 'mm', format: signed, placeholder: '0' },
+          { key: 'front10', expected: front10, tolerance: integerMmTol, unit: 'mm', format: signed, placeholder: '0' },
           { key: 'blackHeightDiff', expected: blackHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
           { key: 'rawRedHeightDiff', expected: rawRedHeightDiffM, tolerance: heightTolM, unit: 'm', format: v => v.toFixed(3), placeholder: '0.000' },
-          { key: 'check13', expected: check13, tolerance: redBlackTolMm, unit: 'mm', format: signed, placeholder: '0' },
-          { key: 'mean14', expected: mean14, tolerance: heightTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(4), placeholder: '0.0000' },
-          { key: 'sightDiff', expected: calc.sightDiffM, tolerance: sightDiffTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' },
-          { key: 'cumulativeSightDiff', expected: calc.cumulativeSightDiffM, tolerance: cumulativeTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' }
+          { key: 'check13', expected: check13, tolerance: integerMmTol, unit: 'mm', format: signed, placeholder: '0' },
+          { key: 'mean14', expected: mean14, tolerance: meanHeightTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(4), placeholder: '0.0000' },
+          { key: 'sightDiff', expected: calc.sightDiffM, tolerance: distanceTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' },
+          { key: 'cumulativeSightDiff', expected: calc.cumulativeSightDiffM, tolerance: distanceTolM, unit: 'm', format: v => (v > 0 ? '+' : '') + v.toFixed(1), placeholder: '0.0' }
         ];
       }
 
       function derivedIssueText(spec, diff) {
-        return OBS_LABELS[spec.key] + '差 ' + formatDerivedDiff(diff, spec.unit) + '，限 ±' + formatTolerance(spec.tolerance, spec.unit);
+        return OBS_LABELS[spec.key] + '差 ' + formatDerivedDiff(diff, spec) + '，限 ±' + formatTolerance(spec.tolerance, spec);
       }
 
-      function formatDerivedDiff(value, unit) {
-        if (unit === 'm') return (value > 0 ? '+' : '') + Number(value).toFixed(3) + 'm';
+      function formatDerivedDiff(value, spec) {
+        if (spec.unit === 'm') {
+          return (value > 0 ? '+' : '') + Number(value).toFixed(derivedMeterDecimals(spec, false)) + 'm';
+        }
         return signed(value) + 'mm';
       }
 
-      function formatTolerance(value, unit) {
-        if (unit === 'm') return Number(value).toFixed(value >= 1 ? 1 : 3) + 'm';
+      function formatTolerance(value, spec) {
+        if (spec.unit === 'm') return Number(value).toFixed(derivedMeterDecimals(spec, true)) + 'm';
         return Number(value).toFixed(value % 1 ? 1 : 0) + 'mm';
+      }
+
+      function derivedMeterDecimals(spec, tolerance) {
+        if (spec.key === 'mean14') return tolerance ? 5 : 4;
+        if (spec.key === 'blackHeightDiff' || spec.key === 'rawRedHeightDiff') return 4;
+        return 3;
       }
 
       function parseReading(value) {
