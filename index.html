@@ -303,10 +303,6 @@
         0 14px 30px rgba(0, 0, 0, 0.14);
     }
 
-    .shot-button.locked {
-      color: var(--muted);
-    }
-
     .primary {
       border-color: rgba(255, 255, 255, 0.34);
       background: linear-gradient(180deg, rgba(44, 44, 46, 0.88), rgba(28, 28, 30, 0.78));
@@ -890,15 +886,6 @@
     .observation-table .station-cell {
       font-weight: 700;
       background: rgba(251, 253, 255, 0.16);
-    }
-
-    .observation-table td.locked input {
-      background: rgba(241, 245, 249, 0.24);
-      color: var(--muted);
-    }
-
-    .lock-line {
-      color: #9a3412;
     }
 
     .calc-value {
@@ -1843,15 +1830,7 @@
       }
 
       function setCurrentShot(shotId, focusInput) {
-        if (!canOpenShot(shotId)) {
-          const firstBlocked = firstIncompleteShotId(activeAnswers(activeStation())) || 'backBlack';
-          const shot = SHOTS.find(item => item.id === firstBlocked) || SHOTS[0];
-          state.currentShot = shot.id;
-          state.flowNotice = '请先完成' + shot.label + '，再切换后续尺面';
-          persist();
-          render();
-          return;
-        }
+        if (!SHOTS.some(shot => shot.id === shotId)) return;
         state.currentShot = shotId;
         state.flowNotice = '';
         persist();
@@ -1868,30 +1847,11 @@
         if (!SHOTS.some(shot => shot.id === state.currentShot)) {
           state.currentShot = 'backBlack';
         }
-        if (!canOpenShot(state.currentShot)) {
-          state.currentShot = firstIncompleteShotId(activeAnswers(activeStation())) || 'backBlack';
-        }
-      }
-
-      function canOpenShot(shotId) {
-        if (state.historyView) return SHOTS.some(shot => shot.id === shotId);
-        const index = SHOTS.findIndex(shot => shot.id === shotId);
-        if (index <= 0) return index === 0;
-        const answers = activeAnswers(activeStation());
-        for (let i = 0; i < index; i += 1) {
-          if (!isShotComplete(SHOTS[i].id, answers)) return false;
-        }
-        return true;
       }
 
       function isShotComplete(shotId, answers) {
         const keys = SHOT_REQUIREMENTS[shotId] || [];
         return keys.every(key => isStaffReadingComplete(answers && answers[key]));
-      }
-
-      function firstIncompleteShotId(answers) {
-        const shot = SHOTS.find(item => !isShotComplete(item.id, answers));
-        return shot ? shot.id : SHOTS[SHOTS.length - 1].id;
       }
 
       function allFaceReadingsComplete(answers) {
@@ -2773,11 +2733,9 @@
 
       function renderShotButtons() {
         [...els.shotSwitch.querySelectorAll('[data-shot]')].forEach(btn => {
-          const locked = !canOpenShot(btn.dataset.shot);
           btn.classList.toggle('active', btn.dataset.shot === state.currentShot);
-          btn.classList.toggle('locked', locked);
-          btn.disabled = locked;
-          btn.title = locked ? '请先完成前面的尺面读数' : '';
+          btn.disabled = false;
+          btn.title = '';
         });
       }
 
@@ -3012,18 +2970,15 @@
       function renderFlowHint(station, shot) {
         const answers = activeAnswers(station);
         const complete = isShotComplete(shot.id, answers);
-        const firstIncomplete = firstIncompleteShotId(answers);
         let text = state.flowNotice || '';
 
         if (!text) {
           if (allFaceReadingsComplete(answers)) {
             text = '本测站黑面、红面读数已完成，可提交复核';
           } else if (complete) {
-            const next = SHOTS[clamp(SHOTS.findIndex(item => item.id === shot.id) + 1, 0, SHOTS.length - 1)];
-            text = next && next.id !== shot.id ? '本项已完成，可进入' + next.label : '本项已完成';
+            text = '本项读数已完成，可自由切换其他尺面';
           } else {
-            const current = SHOTS.find(item => item.id === firstIncomplete) || shot;
-            text = '请先完成' + current.label + '，再进入后续尺面';
+            text = '可自由切换后视、前视的黑面和红面';
           }
         }
 
@@ -3106,22 +3061,21 @@
         function inputTd(key, shot, colspan) {
           const detail = details[key];
           const cls = detail && detail.present && detail.checked !== false ? (detail.ok ? 'good' : 'bad') : '';
-          const locked = !canOpenShot(shot);
           const answerText = reveal && expected[key] != null
             ? '标答 ' + formatM(expected[key])
             : '';
           const value = answers[key] == null ? '' : String(answers[key]);
           const filled = hasFilledValue(value);
-          const tdClass = joinClasses([locked ? 'locked' : '', filled ? 'filled-cell' : '']);
+          const tdClass = filled ? 'filled-cell' : '';
           const inputClass = joinClasses([cls, filled ? 'filled' : '']);
           return (
             '<td' + (colspan ? ' colspan="' + colspan + '"' : '') + (tdClass ? ' class="' + tdClass + '"' : '') + '>' +
-              '<input class="' + inputClass + '" ' + (disabled || locked ? 'disabled ' : '') +
+              '<input class="' + inputClass + '" ' + (disabled ? 'disabled ' : '') +
                 'inputmode="numeric" autocomplete="off" placeholder="" ' +
                 'maxlength="4" pattern="[0-9]*" ' +
                 'data-reading-key="' + key + '" data-shot="' + shot + '" ' +
                 'aria-label="' + escapeHtml(OBS_LABELS[key]) + '" value="' + escapeHtml(value) + '">' +
-              '<span class="answer-line' + (locked ? ' lock-line' : '') + '">' + escapeHtml(answerText) + '</span>' +
+              '<span class="answer-line">' + escapeHtml(answerText) + '</span>' +
             '</td>'
           );
         }
