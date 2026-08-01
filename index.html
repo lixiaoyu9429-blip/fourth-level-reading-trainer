@@ -1313,7 +1313,7 @@
             <div class="staff-body" id="staffBody"></div>
             <div id="crossLayer"></div>
           </div>
-          <p class="flow-hint" id="flowHint">按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数</p>
+          <p class="flow-hint" id="flowHint">可自由切换后视、前视的黑面和红面</p>
           <div class="staff-footer">
             <button data-action="prevShot">上一项</button>
             <button data-action="nextShot">下一项</button>
@@ -1632,8 +1632,12 @@
       snapStationRedReadings(state.practiceStation);
       state.testStations.forEach(snapStationRedReadings);
       state.mistakeStations.forEach(item => snapStationRedReadings(item.station));
-      if (!state.testStations.length) {
+      const hasTestAnswers = Object.values(state.testAnswers).some(hasAnyAnswer);
+      const shouldRefreshTest = !state.testStations.length
+        || (!state.testSubmitted && !hasTestAnswers && !hasAlternatingRodOrder(state.testStations));
+      if (shouldRefreshTest) {
         createTest(false);
+        persist();
       }
 
       bindEvents();
@@ -1877,7 +1881,8 @@
       function newPracticeStation() {
         state.historyView = null;
         const number = state.practiceRecords.length + 1;
-        state.practiceStation = createStation(number, 0);
+        const swap = !stationUsesSwappedRods(state.practiceStation);
+        state.practiceStation = createStation(number, 0, swap);
         state.practiceAnswers = {};
         state.practiceGrade = null;
         state.practiceReveal = false;
@@ -1891,9 +1896,11 @@
       function createTest(shouldRender) {
         state.historyView = null;
         const stations = [];
+        const firstStationSwap = Math.random() < 0.5;
         let cumulative = 0;
         for (let i = 0; i < state.settings.testCount; i += 1) {
-          const station = createStation(i + 1, cumulative);
+          const swap = i % 2 === 0 ? firstStationSwap : !firstStationSwap;
+          const station = createStation(i + 1, cumulative, swap);
           const calc = computeFromValues(expectedValues(station), station, cumulative);
           cumulative = Number.isFinite(calc.cumulativeSightDiffM) ? calc.cumulativeSightDiffM : cumulative;
           station.standardCumulativeAfterM = cumulative;
@@ -3265,7 +3272,7 @@
         const terms = standardTermsForKey(activeStandardKey());
         els.checkSummary.textContent = complete ? '待提交' : '待读数';
         els.checkGrid.innerHTML = '<div class="check-placeholder">' +
-          (complete ? '读数已完成，点击“提交复核”查看视距、' + terms.reviewHint + '。' : '按后视黑面、后视红面、前视黑面、前视红面的顺序完成读数后，再提交复核。') +
+          (complete ? '读数已完成，点击“提交复核”查看视距、' + terms.reviewHint + '。' : '完成后视、前视的黑面和红面读数后，再提交复核。') +
           '</div>';
         els.resultBox.className = 'result-box neutral';
         els.resultBox.innerHTML = '<p class="result-title">' + (complete ? '可以提交复核' : '当前测站待读数') + '</p>';
@@ -3445,8 +3452,8 @@
         return clamp(Number(state.historyView && state.historyView.stationIndex) || 0, 0, Math.max(0, stations.length - 1));
       }
 
-      function createStation(number, cumulativeBeforeM) {
-        const swap = Math.random() < 0.5;
+      function createStation(number, cumulativeBeforeM, swapValue) {
+        const swap = typeof swapValue === 'boolean' ? swapValue : Math.random() < 0.5;
         const backConstant = swap ? state.settings.rodBConstantMm : state.settings.rodAConstantMm;
         const foreConstant = swap ? state.settings.rodAConstantMm : state.settings.rodBConstantMm;
         // 1mm 粒度取值（0.1m精度），让视距不是整米数
@@ -3469,12 +3476,33 @@
         const station = {
           id: uniqueId('station'),
           number,
+          rodSwap: swap,
           cumulativeBeforeM: Number.isFinite(cumulativeBeforeM) ? cumulativeBeforeM : 0,
           backgroundIndex: randomInt(0, STAFF_BACKGROUNDS.length - 1),
           back: createRod(backConstant, backGap),
           fore: createRod(foreConstant, foreGap)
         };
         return station;
+      }
+
+      function stationUsesSwappedRods(station) {
+        if (station && typeof station.rodSwap === 'boolean') return station.rodSwap;
+        const backConstant = Number(station && station.back && station.back.constant);
+        const foreConstant = Number(station && station.fore && station.fore.constant);
+        const rodAConstant = Number(state.settings.rodAConstantMm);
+        const rodBConstant = Number(state.settings.rodBConstantMm);
+        if (backConstant === rodBConstant && foreConstant === rodAConstant) return true;
+        if (backConstant === rodAConstant && foreConstant === rodBConstant) return false;
+        return false;
+      }
+
+      function hasAlternatingRodOrder(stations) {
+        if (!Array.isArray(stations) || stations.length < 2) return true;
+        return stations.slice(1).every((station, index) => {
+          const previous = stations[index];
+          return Number(station.back.constant) === Number(previous.fore.constant)
+            && Number(station.fore.constant) === Number(previous.back.constant);
+        });
       }
 
       function createRod(constant, gap) {
